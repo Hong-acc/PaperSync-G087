@@ -1,0 +1,33 @@
+[
+  {
+    "subject_id": "1",
+    "name": "Mathematic I",
+    "code": "CMT1114",
+    "papers": 
+    [
+      {
+        "paper_id": "p1",
+        "year": "2023",
+        "trimester": "Tri 1"
+      },
+      {
+        "paper_id": "p2",
+        "year": "2023",
+        "trimester": "Tri 2"
+      }
+    ]
+  },
+  {
+    "subject_id": "2",
+    "name": "Problem Solving and Program Design",
+    "code": "CSP1114",
+    "papers": 
+    [
+      {
+        "paper_id": "p3",
+        "year": "2023",
+        "trimester": "Tri 2"
+      }
+    ]
+  }
+]
