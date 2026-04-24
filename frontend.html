@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PaperSync Demo</title>
+</head>
+
+<body>
+
+<h1>PaperSync System Demo</h1>
+
+<!-- SEARCH -->
+<div>
+    <h2>Search Papers</h2>
+
+    <input id="searchBox">
+
+    <!-- 🔥 关键：type="button" -->
+    <button type="button" onclick="search()">Search</button>
+
+    <pre id="searchResult"></pre>
+</div>
+
+<hr>
+
+<!-- COMMENT -->
+<div>
+    <h2>Comment System</h2>
+
+    <input id="user" placeholder="User"><br>
+    <input id="paper" placeholder="Paper"><br>
+    <input id="comment" placeholder="Comment"><br>
+
+    <!-- 🔥 关键：type="button" -->
+    <button type="button" onclick="addComment()">Submit Comment</button>
+
+    <p id="commentResult"></p>
+</div>
+
+<script>
+
+// SEARCH
+function search() {
+    let q = document.getElementById("searchBox").value;
+
+    fetch("http://127.0.0.1:5000/search?q=" + q)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("searchResult").innerText =
+            JSON.stringify(data, null, 2);
+    });
+}
+
+// COMMENT
+function addComment() {
+
+    fetch("http://127.0.0.1:5000/comment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user: document.getElementById("user").value,
+            paper: document.getElementById("paper").value,
+            text: document.getElementById("comment").value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("commentResult").innerText =
+            data.message || data.error;
+
+        document.getElementById("comment").value = "";
+    });
+
+}
+
+</script>
+
+</body>
+</html>
