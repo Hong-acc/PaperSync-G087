@@ -95,7 +95,7 @@ def init_db():
             {
                 "solution_id": "s1",
                 "paper_id": "p1",
-                "uploader_id": "2",
+                "uploader_id": "u2",
                 "uploader_username": "student",
                 "filepath": "dummy.pdf", 
                 "upvotes": 5,
