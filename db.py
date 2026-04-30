@@ -37,13 +37,15 @@ def init_db():
     if not users:
         users = [
             {
-                "id": "1",
+                "user_id": "1",
+                "user_email": "admin@mmu.edu.my",
                 "username": "admin",
                 "password_hash": generate_password_hash("admin123"),
                 "role": "admin"
             },
             {
-                "id": "2",
+                "user_id": "2",
+                "user_email": "student@student.mmu.edu.my",
                 "username": "student",
                 "password_hash": generate_password_hash("student123"),
                 "role": "student"
@@ -91,7 +93,7 @@ def init_db():
     if not solutions:
         solutions = [
             {
-                "id": "s1",
+                "solution_id": "s1",
                 "paper_id": "p1",
                 "uploader_id": "2",
                 "uploader_username": "student",
@@ -106,7 +108,7 @@ def init_db():
     if not comments:
         comments = [
             {
-                "id": "c1",
+                "comment_id": "c1",
                 "target_type": "paper",
                 "target_id": "p1",
                 "user_id": "2",

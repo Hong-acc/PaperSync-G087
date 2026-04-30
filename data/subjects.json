@@ -1,8 +1,8 @@
 [
   {
     "subject_id": "1",
-    "name": "Mathematic I",
-    "code": "CMT1114",
+    "subject_name": "Mathematic I",
+    "subject_code": "CMT1114",
     "papers": 
     [
       {
@@ -19,8 +19,8 @@
   },
   {
     "subject_id": "2",
-    "name": "Problem Solving and Program Design",
-    "code": "CSP1114",
+    "subject_name": "Problem Solving and Program Design",
+    "subject_code": "CSP1114",
     "papers": 
     [
       {
