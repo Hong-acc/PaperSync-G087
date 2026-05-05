@@ -4,25 +4,31 @@ import json
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
-# ---------- Helper Functions ----------
+# ---------- Helper ----------
 def read_json(file):
     if not os.path.exists(file):
         return []
-    with open(file, 'r') as f:
-        return json.load(f)
+    with open(file, "r") as f:
+        content = f.read().strip()
+        return json.loads(content) if content else []
 
 def write_json(file, data):
-    with open(file, 'w') as f:
+    with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
-# ---------- HOME (ONLY ONE) ----------
+# ---------- HOME ----------
 @app.route('/')
 def home():
     return redirect('/frontend')
 
-# ---------- Search ----------
+@app.route('/frontend')
+def frontend():
+    with open("frontend.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+# ---------- SEARCH ----------
 @app.route('/search', methods=['GET'])
 def search():
     keyword = request.args.get('q', '').lower()
@@ -36,66 +42,94 @@ def search():
 
     return jsonify(results)
 
-# ---------- Add Comment ----------
+# ---------- COMMENT ----------
 @app.route('/comment', methods=['POST'])
 def add_comment():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    comments = read_json("comments.json")
 
-        if not data:
-            return jsonify({"error": "No JSON received"}), 400
+    comments.append({
+        "id": str(len(comments) + 1),
+        "user": data.get("user", ""),
+        "paper": data.get("paper", ""),
+        "text": data.get("text", ""),
+        "votes": 0,
+        "voters": {},
+        "replies": []
+    })
 
-        comments = read_json('comments.json')
+    write_json("comments.json", comments)
+    return jsonify({"message": "Comment added"})
 
-        new_comment = {
-            "user": data.get('user', ''),
-            "paper": data.get('paper', ''),
-            "text": data.get('text', '')
-        }
+# ---------- VOTE ----------
+@app.route('/vote', methods=['POST'])
+def vote():
+    data = request.get_json()
+    comments = read_json("comments.json")
 
-        comments.append(new_comment)
-        write_json('comments.json', comments)
+    cid = str(data.get("id"))
+    action = data.get("action")
+    user = "user1"
 
-        return jsonify({"message": "Comment added successfully"})
+    for c in comments:
+        if str(c.get("id")) == cid:
 
-    except Exception as e:
-        print("ERROR:", e)
-        return jsonify({"error": str(e)}), 500
+            if "voters" not in c:
+                c["voters"] = {}
 
-# ---------- Reply ----------
+            previous = c["voters"].get(user)
+
+            if previous == action:
+                return jsonify({"message": "Already voted"})
+
+            # remove old vote
+            if previous == "upvote":
+                c["votes"] -= 1
+            elif previous == "downvote":
+                c["votes"] += 1
+
+            # apply new vote
+            if action == "upvote":
+                c["votes"] += 1
+            elif action == "downvote":
+                c["votes"] -= 1
+
+            c["voters"][user] = action
+
+    write_json("comments.json", comments)
+    return jsonify({"message": "Vote updated"})
+
+# ---------- REPLY ----------
 @app.route('/reply', methods=['POST'])
 def reply():
-    try:
-        data = request.get_json()
+    data = request.get_json()
+    comments = read_json("comments.json")
 
-        if not data:
-            return jsonify({"error": "No JSON received"}), 400
+    cid = str(data.get("id"))
 
-        comments = read_json('comments.json')
+    for c in comments:
+        if str(c.get("id")) == cid:
 
-        for c in comments:
-            if c.get('paper') == data.get('paper'):
-                if 'replies' not in c:
-                    c['replies'] = []
+            if "replies" not in c:
+                c["replies"] = []
 
-                c['replies'].append({
-                    "user": data.get('user', ''),
-                    "text": data.get('text', '')
-                })
+            c["replies"].append({
+                "user": data.get("user", "anonymous"),
+                "text": data.get("text", "")
+            })
 
-        write_json('comments.json', comments)
+    write_json("comments.json", comments)
+    return jsonify({"message": "Reply added"})
 
-        return jsonify({"message": "Reply added successfully"})
+# ---------- COMMENTS (🔥 SORTED BY VOTES) ----------
+@app.route('/comments', methods=['GET'])
+def get_comments():
+    comments = read_json("comments.json")
 
-    except Exception as e:
-        print("ERROR:", e)
-        return jsonify({"error": str(e)}), 500
+    # 🔥 SORT BY VOTES (highest first)
+    comments.sort(key=lambda x: x.get("votes", 0), reverse=True)
 
-# ---------- FRONTEND ----------
-@app.route('/frontend')
-def frontend():
-    with open("frontend.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return jsonify(comments)
 
 # ---------- RUN ----------
 if __name__ == '__main__':

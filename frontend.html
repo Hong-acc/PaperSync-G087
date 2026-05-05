@@ -1,78 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>PaperSync Demo</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PaperSync Forum System</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f7fb;
+  padding: 30px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+h1 {
+  color: #1e3a8a;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+button {
+  padding: 6px 10px;
+  margin: 4px 4px 0 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+.up {
+  background: #22c55e;
+  color: white;
+}
+
+.down {
+  background: #ef4444;
+  color: white;
+}
+
+.rep {
+  background: #3b82f6;
+  color: white;
+}
+
+.reply {
+  margin-left: 20px;
+  font-size: 13px;
+  color: #555;
+  border-left: 3px solid #ddd;
+  padding-left: 10px;
+}
+</style>
+
 </head>
 
 <body>
 
-<h1>PaperSync System Demo</h1>
+<div class="container">
 
-<!-- SEARCH -->
-<div>
-    <h2>Search Papers</h2>
+<h1>📚 PaperSync Forum</h1>
 
-    <input id="searchBox">
-
-    <!-- 🔥 关键：type="button" -->
-    <button type="button" onclick="search()">Search</button>
-
-    <pre id="searchResult"></pre>
+<div class="card">
+  <h2>Search</h2>
+  <input id="searchBox" placeholder="Search paper"/>
+  <button onclick="searchPaper()">Search</button>
+  <pre id="searchResult"></pre>
 </div>
 
-<hr>
+<div class="card">
+  <h2>Post Comment</h2>
+  <input id="user" placeholder="User"/>
+  <input id="paper" placeholder="Paper"/>
+  <input id="comment" placeholder="Comment"/>
+  <button onclick="addComment()">Submit</button>
+  <div id="commentResult"></div>
+</div>
 
-<!-- COMMENT -->
-<div>
-    <h2>Comment System</h2>
+<div class="card">
+  <h2>Forum</h2>
+  <div id="forumList"></div>
+</div>
 
-    <input id="user" placeholder="User"><br>
-    <input id="paper" placeholder="Paper"><br>
-    <input id="comment" placeholder="Comment"><br>
-
-    <!-- 🔥 关键：type="button" -->
-    <button type="button" onclick="addComment()">Submit Comment</button>
-
-    <p id="commentResult"></p>
 </div>
 
 <script>
 
-// SEARCH
-function search() {
-    let q = document.getElementById("searchBox").value;
-
-    fetch("http://127.0.0.1:5000/search?q=" + q)
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("searchResult").innerText =
-            JSON.stringify(data, null, 2);
-    });
+function searchPaper() {
+  fetch('http://127.0.0.1:5000/search?q=' + document.getElementById('searchBox').value)
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('searchResult').innerText =
+      JSON.stringify(data, null, 2);
+  });
 }
 
-// COMMENT
 function addComment() {
-
-    fetch("http://127.0.0.1:5000/comment", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            user: document.getElementById("user").value,
-            paper: document.getElementById("paper").value,
-            text: document.getElementById("comment").value
-        })
+  fetch('http://127.0.0.1:5000/comment', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      user: user.value,
+      paper: paper.value,
+      text: comment.value
     })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("commentResult").innerText =
-            data.message || data.error;
-
-        document.getElementById("comment").value = "";
-    });
-
+  })
+  .then(r => r.json())
+  .then(data => {
+    commentResult.innerText = data.message;
+    user.value = '';
+    paper.value = '';
+    comment.value = '';
+    loadComments();
+  });
 }
+
+function loadComments() {
+  fetch('http://127.0.0.1:5000/comments')
+  .then(r => r.json())
+  .then(data => {
+
+    const forum = document.getElementById('forumList');
+    forum.innerHTML = '';
+
+    data.forEach(c => {
+
+      let replies = '';
+      if (c.replies) {
+        c.replies.forEach(r => {
+          replies += `<div class="reply">↳ <b>${r.user}</b>: ${r.text}</div>`;
+        });
+      }
+
+      const div = document.createElement('div');
+      div.className = 'card';
+
+      div.innerHTML = `
+        <b>${c.user}</b> • ${c.paper}<br>
+        ${c.text}<br><br>
+
+        👍 Votes: ${c.votes || 0}<br>
+
+        <button class="up">👍 Upvote</button>
+        <button class="down">👎 Downvote</button>
+        <button class="rep">💬 Reply</button>
+
+        <div>${replies}</div>
+      `;
+
+      div.querySelector('.up').onclick = () => voteComment(c.id, 'upvote');
+      div.querySelector('.down').onclick = () => voteComment(c.id, 'downvote');
+      div.querySelector('.rep').onclick = () => replyComment(c.id);
+
+      forum.appendChild(div);
+    });
+  });
+}
+
+function voteComment(id, action) {
+  fetch('http://127.0.0.1:5000/vote', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id, action})
+  }).then(() => loadComments());
+}
+
+function replyComment(id) {
+  const text = prompt("Reply:");
+
+  if (!text) return;
+
+  fetch('http://127.0.0.1:5000/reply', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      id,
+      user: user.value || "anonymous",
+      text
+    })
+  }).then(() => loadComments());
+}
+
+window.onload = loadComments;
 
 </script>
 
