@@ -1,33 +1,31 @@
 [
-  {
-    "subject_id": "1",
-    "subject_name": "Mathematic I",
-    "subject_code": "CMT1114",
-    "papers": 
-    [
-      {
-        "paper_id": "p1",
-        "year": "2023",
-        "trimester": "Tri 1"
-      },
-      {
-        "paper_id": "p2",
-        "year": "2023",
-        "trimester": "Tri 2"
-      }
-    ]
-  },
-  {
-    "subject_id": "2",
-    "subject_name": "Problem Solving and Program Design",
-    "subject_code": "CSP1114",
-    "papers": 
-    [
-      {
-        "paper_id": "p3",
-        "year": "2023",
-        "trimester": "Tri 2"
-      }
-    ]
-  }
+    {
+        "subject_id": "1",
+        "subject_name": "Mathematic I",
+        "subject_code": "CMT1114",
+        "papers": [
+            {
+                "paper_id": "p1",
+                "year": "2023",
+                "trimester": "Tri 1"
+            },
+            {
+                "paper_id": "p2",
+                "year": "2023",
+                "trimester": "Tri 2"
+            }
+        ]
+    },
+    {
+        "subject_id": "2",
+        "subject_name": "Problem Solving and Program Design",
+        "subject_code": "CSP1114",
+        "papers": [
+            {
+                "paper_id": "p3",
+                "year": "2023",
+                "trimester": "Tri 2"
+            }
+        ]
+    }
 ]

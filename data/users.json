@@ -1,16 +1,16 @@
 [
-  {
-    "user_id": "1",
-    "user_email": "admin@mmu.edu.my",
-    "username": "admin",
-    "password_hash": "scrypt:32768:8:1$g8m3GtOpVqLGed6Q$...",
-    "role": "admin"
-  },
-  {
-    "user_id": "2",
-    "user_email": "student@student.mmu.edu.my",
-    "username": "student",
-    "password_hash": "scrypt:32768:8:1$differentHash$...",
-    "role": "student"
-  }
+    {
+        "user_id": "1",
+        "username": "admin",
+        "user_email": "admin@mmu.edu.my",
+        "password_hash": "scrypt:32768:8:1$g8m3GtOpVqLGed6Q$...",
+        "role": "admin"
+    },
+    {
+        "user_id": "2",
+        "username": "student",
+        "user_email": "student@student.mmu.edu.my",
+        "password_hash": "scrypt:32768:8:1$differentHash$...",
+        "role": "student"
+    }
 ]
