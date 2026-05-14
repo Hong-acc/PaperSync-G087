@@ -1,16 +1,51 @@
 [
-  {
-    "user_id": "1",
-    "user_email": "admin@mmu.edu.my",
-    "username": "admin",
-    "password_hash": "scrypt:32768:8:1$g8m3GtOpVqLGed6Q$...",
-    "role": "admin"
-  },
-  {
-    "user_id": "2",
-    "user_email": "student@student.mmu.edu.my",
-    "username": "student",
-    "password_hash": "scrypt:32768:8:1$differentHash$...",
-    "role": "student"
-  }
+    {
+        "user_id": "1",
+        "user_email": "admin@mmu.edu.my",
+        "username": "admin",
+        "password_hash": "scrypt:32768:8:1$g8m3GtOpVqLGed6Q$...",
+        "role": "admin"
+    },
+    {
+        "user_id": "2",
+        "user_email": "student@student.mmu.edu.my",
+        "username": "student",
+        "password_hash": "scrypt:32768:8:1$differentHash$...",
+        "role": "student"
+    },
+    {
+        "user_id": "3",
+        "user_email": "",
+        "username": "",
+        "password_hash": "scrypt:32768:8:1$RGUUoCvIItNSo8Fg$8bf8aa6a1410d3c80681e3ee7e8513abac2a7f74445be82f38b1fde22549f106a1f63aea73cac870f4a0ff2cf810d6a7d8ffa7ec686c8805d10e1701132fd7ca",
+        "role": "student"
+    },
+    {
+        "user_id": "4",
+        "user_email": "gggg@gmail.com",
+        "username": "A",
+        "password_hash": "scrypt:32768:8:1$5jbmv0oqw0xw5WTL$baa1fa47cf8350cf4a803d6e85c8179b7f6d65b0c55ae010a668e1214e5e2b59f6a3a6aa6117ff979d86057013bbd0a950aae1214f32aca65f730277664c93ab",
+        "role": "student"
+    },
+    {
+        "user_id": "5",
+        "user_email": "ggggg@gmail.com",
+        "username": "A",
+        "password_hash": "scrypt:32768:8:1$wwjdKzCwsCJGEgY8$fa614dd357ba5437bf4e974f451b804b282b566e790fdd03bd69b24525f9708dcfca2c52d288bbbf9fd0615ded3fd063481a522d119cefdff62a64cf96a07a7f",
+        "role": "student"
+    },
+    {
+        "user_id": "6",
+        "user_email": "sdmkdka@gmail.com",
+        "username": "hsuaij",
+        "password_hash": "scrypt:32768:8:1$bb5hmWa5XyE6P9zX$3e3cd7096a9b890883f01f68b3979bb148fbf302eb9dcfe011c011f4a1f754161d647b9bf5e9dd8f42daef9bb73ab8585e68449ddf3fdc6aa880cf3fe658d5b6",
+        "role": "student"
+    },
+    {
+        "user_id": "7",
+        "user_email": "dada@gmail.com",
+        "username": "adaddd",
+        "password_hash": "scrypt:32768:8:1$9za1mEGkfGItgFUn$4282667f5f38a94a58af1a635a428153787425e74f5c6c6295e55ef531cb18441627be8854c1dbed6961e7d00bad923bc550ad8c2afd37a7075970d6f14f3e67",
+        "role": "student"
+    }
 ]
