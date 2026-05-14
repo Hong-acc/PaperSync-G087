@@ -23,6 +23,18 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* 🔥 LOGIN STATUS BAR */
+#loginStatus {
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: bold;
+  background: #e5e7eb;
+  color: #6b7280;
+  transition: 0.3s;
+}
+
 .card {
   background: white;
   padding: 15px;
@@ -47,24 +59,9 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  opacity: 0.8;
-}
-
-.up {
-  background: #22c55e;
-  color: white;
-}
-
-.down {
-  background: #ef4444;
-  color: white;
-}
-
-.rep {
-  background: #3b82f6;
-  color: white;
-}
+.up { background: #22c55e; color: white; }
+.down { background: #ef4444; color: white; }
+.rep { background: #3b82f6; color: white; }
 
 .reply {
   margin-left: 20px;
@@ -83,22 +80,43 @@ button:hover {
 
 <h1>📚 PaperSync Forum</h1>
 
+<!-- 🔥 LOGIN STATUS -->
+<div id="loginStatus">
+  Not logged in
+</div>
+
+<!-- LOGIN -->
 <div class="card">
-  <h2>Search</h2>
+  <h2>Login System</h2>
+
+  <input id="loginUser" placeholder="Username">
+  <input id="loginEmail" placeholder="Email (signup only)">
+  <input id="loginPass" type="password" placeholder="Password">
+
+  <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Login</button>
+
+  <div id="authMsg"></div>
+</div>
+
+<!-- SEARCH -->
+<div class="card">
+  <h2>Search Papers</h2>
   <input id="searchBox" placeholder="Search paper"/>
   <button onclick="searchPaper()">Search</button>
   <pre id="searchResult"></pre>
 </div>
 
+<!-- COMMENT -->
 <div class="card">
   <h2>Post Comment</h2>
   <input id="user" placeholder="User"/>
   <input id="paper" placeholder="Paper"/>
   <input id="comment" placeholder="Comment"/>
   <button onclick="addComment()">Submit</button>
-  <div id="commentResult"></div>
 </div>
 
+<!-- FORUM -->
 <div class="card">
   <h2>Forum</h2>
   <div id="forumList"></div>
@@ -108,54 +126,126 @@ button:hover {
 
 <script>
 
-function searchPaper() {
-  fetch('http://127.0.0.1:5000/search?q=' + document.getElementById('searchBox').value)
-  .then(r => r.json())
-  .then(data => {
-    document.getElementById('searchResult').innerText =
-      JSON.stringify(data, null, 2);
-  });
-}
+// ================= SIGNUP =================
+function signup() {
 
-function addComment() {
-  fetch('http://127.0.0.1:5000/comment', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+  if (!loginUser.value.trim() || !loginEmail.value.trim() || !loginPass.value.trim()) {
+    authMsg.innerText = "Please fill in all fields";
+    return;
+  }
+
+  fetch("/signup", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
     body: JSON.stringify({
-      user: user.value,
-      paper: paper.value,
-      text: comment.value
+      username: loginUser.value,
+      email: loginEmail.value,
+      password: loginPass.value
     })
   })
   .then(r => r.json())
   .then(data => {
-    commentResult.innerText = data.message;
-    user.value = '';
-    paper.value = '';
-    comment.value = '';
-    loadComments();
+    authMsg.innerText = data.message || "Error";
   });
 }
 
-function loadComments() {
-  fetch('http://127.0.0.1:5000/comments')
+// ================= LOGIN (UPGRADED UI) =================
+function login() {
+
+  if (!loginUser.value.trim() || !loginPass.value.trim()) {
+    authMsg.innerText = "Please fill in all fields";
+    return;
+  }
+
+  fetch("/login", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      username: loginUser.value,
+      password: loginPass.value
+    })
+  })
   .then(r => r.json())
   .then(data => {
 
-    const forum = document.getElementById('forumList');
-    forum.innerHTML = '';
+    if (data.success && data.user) {
+
+      // save session
+      localStorage.setItem("user", data.user.username);
+      localStorage.setItem("user_id", data.user.user_id);
+
+      user.value = data.user.username;
+
+      // success message
+      authMsg.innerText = "Login successful 🎉";
+
+      // 🔥 BIG UI FEEDBACK
+      const status = document.getElementById("loginStatus");
+
+      status.innerHTML = `
+        ✅ Logged in as <b>${data.user.username}</b>
+        <br>
+        Role: ${data.user.role}
+      `;
+
+      status.style.background = "#dcfce7";
+      status.style.color = "#166534";
+
+    } else {
+
+      authMsg.innerText = data.message || "Login failed";
+
+      const status = document.getElementById("loginStatus");
+      status.innerHTML = "❌ Not logged in";
+      status.style.background = "#fee2e2";
+      status.style.color = "#991b1b";
+    }
+  })
+  .catch(() => {
+    authMsg.innerText = "Server error";
+  });
+}
+
+// ================= SEARCH =================
+function searchPaper() {
+  fetch('/search?q=' + searchBox.value)
+  .then(r => r.json())
+  .then(data => {
+    searchResult.innerText = JSON.stringify(data, null, 2);
+  });
+}
+
+// ================= COMMENT =================
+function addComment() {
+  fetch("/comment", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      user: localStorage.getItem("user") || user.value,
+      paper: paper.value,
+      text: comment.value
+    })
+  }).then(() => loadComments());
+}
+
+// ================= LOAD COMMENTS =================
+function loadComments() {
+  fetch("/comments")
+  .then(r => r.json())
+  .then(data => {
+
+    const forum = document.getElementById("forumList");
+    forum.innerHTML = "";
 
     data.forEach(c => {
 
-      let replies = '';
-      if (c.replies) {
-        c.replies.forEach(r => {
-          replies += `<div class="reply">↳ <b>${r.user}</b>: ${r.text}</div>`;
-        });
-      }
+      let replies = "";
+      (c.replies || []).forEach(r => {
+        replies += `<div class="reply">↳ <b>${r.user}</b>: ${r.text}</div>`;
+      });
 
-      const div = document.createElement('div');
-      div.className = 'card';
+      const div = document.createElement("div");
+      div.className = "card";
 
       div.innerHTML = `
         <b>${c.user}</b> • ${c.paper}<br>
@@ -170,34 +260,39 @@ function loadComments() {
         <div>${replies}</div>
       `;
 
-      div.querySelector('.up').onclick = () => voteComment(c.id, 'upvote');
-      div.querySelector('.down').onclick = () => voteComment(c.id, 'downvote');
-      div.querySelector('.rep').onclick = () => replyComment(c.id);
+      div.querySelector(".up").onclick = () => vote(c.id, "upvote");
+      div.querySelector(".down").onclick = () => vote(c.id, "downvote");
+      div.querySelector(".rep").onclick = () => reply(c.id);
 
       forum.appendChild(div);
     });
   });
 }
 
-function voteComment(id, action) {
-  fetch('http://127.0.0.1:5000/vote', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({id, action})
+// ================= VOTE =================
+function vote(id, action) {
+  fetch("/vote", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      id,
+      action,
+      user: localStorage.getItem("user") || "guest"
+    })
   }).then(() => loadComments());
 }
 
-function replyComment(id) {
-  const text = prompt("Reply:");
-
+// ================= REPLY =================
+function reply(id) {
+  let text = prompt("Reply:");
   if (!text) return;
 
-  fetch('http://127.0.0.1:5000/reply', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+  fetch("/reply", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
     body: JSON.stringify({
       id,
-      user: user.value || "anonymous",
+      user: localStorage.getItem("user") || "anonymous",
       text
     })
   }).then(() => loadComments());
