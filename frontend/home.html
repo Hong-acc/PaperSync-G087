@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Student Peer Support Platform - Home</title>
+
+    <!-- Font Awesome：用来显示各种小图标（如计算器、电脑、书本等） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts：引入 DM Sans（正文字体）和 DM Mono（科目代码专用等宽字体） -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --accent: #4f6ef7;        
+            --accent-dark: #3655e8;   
+            --cat-math: #f59e0b;     
+            --cat-lang: #10b981;      
+            --cat-sci: #8b5cf6;      
+            --cat-cs: #3b82f6;      
+            --cat-media: #ec4899;    
+            --cat-biz: #f97316;       
+        }
+
+        
+        body {
+            font-family: 'DM Sans', Arial, sans-serif;
+            background: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
+                url("bg.png") no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            min-height: 100vh; 
+        }
+
+       
+        .top-bar {
+            background: rgba(255,255,255,0.92); /* 半透明白色背景 */
+            backdrop-filter: blur(12px);        /* 磨砂玻璃效果 */
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;     
+            align-items: center;
+            position: sticky;                  
+            top: 0;
+            z-index: 200;                       
+        }
+        .top-bar .site-name { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+        .top-bar .user-info { font-size: 0.85rem; color: #6b7280; font-weight: 500; }
+
+
+        .cat-nav {
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 28px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;          
+            scrollbar-width: none;      
+            position: sticky;
+            top: 53px;              
+            z-index: 100;
+        }
+        .cat-nav::-webkit-scrollbar { display: none; }
+
+        .cat-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: #6b7280;          
+            white-space: nowrap;        
+            border-bottom: 2.5px solid transparent; 
+            transition: color 0.18s, border-color 0.18s;
+            position: relative;
+            top: 1px; /
+        }
+
+        .cat-btn .cat-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            flex-shrink: 0;           
+            transition: transform 0.18s;
+        }
+        .cat-btn:hover .cat-icon { transform: scale(1.12); }
+
+        .cat-btn[data-cat="all"]    .cat-icon { background: #f3f4f6; color: #374151; }
+        .cat-btn[data-cat="math"]   .cat-icon { background: #fef3c7; color: #d97706; } 
+        .cat-btn[data-cat="lang"]   .cat-icon { background: #d1fae5; color: #059669; } 
+        .cat-btn[data-cat="sci"]    .cat-icon { background: #ede9fe; color: #7c3aed; } 
+        .cat-btn[data-cat="cs"]     .cat-icon { background: #dbeafe; color: #1d4ed8; } 
+        .cat-btn[data-cat="media"]  .cat-icon { background: #fce7f3; color: #be185d; }
+        .cat-btn[data-cat="biz"]    .cat-icon { background: #ffedd5; color: #c2410c; } 
+
+        .cat-btn:hover { color: #1a1a2e; }
+
+        .cat-btn[data-cat="all"].active   { color: #374151;          border-color: #9ca3af; }
+        .cat-btn[data-cat="math"].active  { color: var(--cat-math);  border-color: var(--cat-math); }
+        .cat-btn[data-cat="lang"].active  { color: var(--cat-lang);  border-color: var(--cat-lang); }
+        .cat-btn[data-cat="sci"].active   { color: var(--cat-sci);   border-color: var(--cat-sci);  }
+        .cat-btn[data-cat="cs"].active    { color: var(--cat-cs);    border-color: var(--cat-cs);   }
+        .cat-btn[data-cat="media"].active { color: var(--cat-media); border-color: var(--cat-media);}
+        .cat-btn[data-cat="biz"].active   { color: var(--cat-biz);   border-color: var(--cat-biz);  }
+
+
+        .subject-grid-wrapper {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 20px;
+            overflow: hidden;
+            max-height: 0;      
+            opacity: 0;
+            transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
+        }
+        .subject-grid-wrapper.open {
+            max-height: 600px;  
+            opacity: 1;
+            margin-top: 28px;
+        }
+
+        .subject-grid-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 10px;
+            padding-bottom: 4px;
+        }
+
+        .subj-chip {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .subj-chip:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
+
+        .subj-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+
+        .subj-chip .chip-code { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 500; color: #9ca3af; letter-spacing: 0.5px; display: block; }
+
+        .subj-chip .chip-name { font-size: 0.85rem; font-weight: 600; color: #1f2937; line-height: 1.35; margin-top: 1px; display: block; }
+
+        .subj-chip[data-cat="math"]  .chip-dot { background: var(--cat-math); }
+        .subj-chip[data-cat="lang"]  .chip-dot { background: var(--cat-lang); }
+        .subj-chip[data-cat="sci"]   .chip-dot { background: var(--cat-sci);  }
+        .subj-chip[data-cat="cs"]    .chip-dot { background: var(--cat-cs);   }
+        .subj-chip[data-cat="media"] .chip-dot { background: var(--cat-media);}
+        .subj-chip[data-cat="biz"]   .chip-dot { background: var(--cat-biz);  }
+
+        .subj-chip[data-cat="math"]:hover  { border-color: var(--cat-math); }
+        .subj-chip[data-cat="lang"]:hover  { border-color: var(--cat-lang); }
+        .subj-chip[data-cat="sci"]:hover   { border-color: var(--cat-sci);  }
+        .subj-chip[data-cat="cs"]:hover    { border-color: var(--cat-cs);   }
+        .subj-chip[data-cat="media"]:hover { border-color: var(--cat-media);}
+        .subj-chip[data-cat="biz"]:hover   { border-color: var(--cat-biz);  }
+
+
+        .main { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 5px; color: #1a1a2e; letter-spacing: -0.3px; }
+        .hint { font-size: 0.87rem; color: #9ca3af; margin-bottom: 18px; font-weight: 400; }
+
+        .search-row { display: flex; gap: 8px; margin-bottom: 26px; }
+        .search-row input {
+            flex: 1;
+            padding: 11px 15px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'DM Mono', monospace; 
+            outline: none;
+            letter-spacing: 0.5px;
+            background: #fff;
+            transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .search-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,110,247,0.12); }
+        .search-row button {
+            padding: 11px 22px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.18s;
+        }
+        .search-row button:hover { background: var(--accent-dark); }
+
+
+        .result-card {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px 24px;
+            display: none;
+            animation: fadeIn 0.2s ease; /* 出现时淡入+上移动画 */
+        }
+        .result-card.show { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+        .result-card .code { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: #9ca3af; letter-spacing: 1px; margin-bottom: 5px; }
+        .result-card .subject-name { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+        .result-card .description { font-size: 0.88rem; color: #6b7280; line-height: 1.65; }
+
+        .badge-math  { background: #fef3c7; color: #d97706; }
+        .badge-lang  { background: #d1fae5; color: #059669; }
+        .badge-sci   { background: #ede9fe; color: #7c3aed; }
+        .badge-cs    { background: #dbeafe; color: #1d4ed8; }
+        .badge-media { background: #fce7f3; color: #be185d; }
+        .badge-biz   { background: #ffedd5; color: #c2410c; }
+        .badge-other { background: #f3f4f6; color: #374151; }
+
+        .not-found {
+            color: #ef4444;
+            font-size: 0.88rem;
+            display: none; 
+            padding: 14px 18px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .not-found.show { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <span class="site-name">📚 Student Peer Support Platform</span>
+    <span class="user-info">Welcome, user-info</span>
+</div>
+
+<nav class="cat-nav" id="catNav">
+    <button class="cat-btn" data-cat="all">
+        <span class="cat-icon"><i class="fa-solid fa-border-all"></i></span>
+        All Subjects
+    </button>
+    <button class="cat-btn" data-cat="math">
+        <span class="cat-icon"><i class="fa-solid fa-square-root-variable"></i></span>
+        Mathematics
+    </button>
+    <button class="cat-btn" data-cat="lang">
+        <span class="cat-icon"><i class="fa-solid fa-language"></i></span>
+        Languages
+    </button>
+    <button class="cat-btn" data-cat="sci">
+        <span class="cat-icon"><i class="fa-solid fa-flask"></i></span>
+        Science
+    </button>
+    <button class="cat-btn" data-cat="cs">
+        <span class="cat-icon"><i class="fa-solid fa-microchip"></i></span>
+        Computing
+    </button>
+    <button class="cat-btn" data-cat="media">
+        <span class="cat-icon"><i class="fa-solid fa-photo-film"></i></span>
+        Multimedia
+    </button>
+    <button class="cat-btn" data-cat="biz">
+        <span class="cat-icon"><i class="fa-solid fa-briefcase"></i></span>
+        Business
+    </button>
+</nav>
+
+<div class="subject-grid-wrapper" id="subjectGridWrapper">
+    <div style="max-width:760px; margin:0 auto; padding:0 20px 28px;">
+        <div class="subject-grid-label" id="gridLabel">All Subjects</div>
+        <div class="subject-grid" id="subjectGrid"></div>
+    </div>
+</div>
+
+<div class="main">
+    <h2>Find Your Subject</h2>
+    <p class="hint">Enter the subject code to search (eg. CMT1114), or browse by category above</p>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Enter subject code..." />
+        <button onclick="search()">Search</button>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="badge" id="resultBadge"></div>       
+        <div class="code" id="resultCode"></div>          
+        <div class="subject-name" id="resultName"></div> 
+        <div class="description" id="resultDesc"></div> 
+    </div>
+
+    <div class="not-found" id="notFound">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>
+        Subject not found. Please check the code and try again.
+    </div>
+
+    </div>
+</div>
+
+
+<script>
+    const subjects = {
+        "CMT1134": { name: "Mathematics (Foundation Sem 3)",       desc: "Covers topics such as precalculus, matrices, and statistics for foundation-level students in their third semester.", cat: "math", icon: "fa-square-root-variable" },
+        "CMT1114": { name: "Mathematics (Foundation Sem 1)",       desc: "Introduction to basic algebra, trigonometry, and number systems for foundation-level students.", cat: "math", icon: "fa-square-root-variable" },
+        "CMT1124": { name: "Mathematics (Foundation Sem 2)",       desc: "Continuation of foundation mathematics, covering functions, sequences, and introductory calculus.", cat: "math", icon: "fa-square-root-variable" },
+        "LAE1113": { name: "Academic English",                     desc: "A language course focused on building core English skills including reading, writing, grammar, and communication.", cat: "lang", icon: "fa-language" },
+        "LCT1113": { name: "Critical Thinking",                    desc: "Covers topics such as Argumentation, Logical Fallacies and Precision.", cat: "lang", icon: "fa-comments" },
+        "CPP1113": { name: "Prienciples of Physics",                desc: "Fundamentals of physics, programming logic, and problem-solving using basic algorithms.", cat: "sci", icon: "fa-flask" },
+        "CDS1114": { name: "Introduction To Digital System",       desc: "Introduction to basic digital concept, logic gates and logic analysis.", cat: "cs", icon: "fa-microchip" },
+        "CCT1114": { name: "Introduction To Computing Technology", desc: "Learning basic coding such as HTML and CSS and also learn how computing works and how it impacts our daily lives.", cat: "cs", icon: "fa-laptop-code" },
+        "CSP1114": { name: "Problem Solving & Program Design",     desc: "Learning coding using Python and complete a project at the end of semester.", cat: "cs", icon: "fa-laptop-code" },
+        "CMF1114": { name: "Multimedia Fundamental",               desc: "Course that learns using tools such as GIMP and Audacity to develop a strong understanding of how elements are produced and managed digitally.", cat: "media", icon: "fa-photo-film" },
+        "GNB1114": { name: "Intro To Business Management",         desc: "Learning basic business concepts and have coursework at middle of the semester.", cat: "biz", icon: "fa-briefcase" },
+        "LCE1113": { name: "Communitative English",                desc: "A language course focused on building basic English skills including reading, writing, grammar, and communication.", cat: "lang", icon: "fa-language" },
+        "LEE1113": { name: "Esssential English",                   desc: "A language course focused on building essential English skills including reading, writing, grammar, and communication.", cat: "lang", icon: "fa-language" },
+    };
+
+    
+    const catMeta = {
+        all:   { label: "All Subjects", badgeClass: "badge-other", badgeText: "General",     icon: "fa-border-all" },
+        math:  { label: "Mathematics",  badgeClass: "badge-math",  badgeText: "Mathematics", icon: "fa-square-root-variable" },
+        lang:  { label: "Languages",    badgeClass: "badge-lang",  badgeText: "Languages",   icon: "fa-language" },
+        sci:   { label: "Science",      badgeClass: "badge-sci",   badgeText: "Science",     icon: "fa-flask" },
+        cs:    { label: "Computing",    badgeClass: "badge-cs",    badgeText: "Computing",   icon: "fa-microchip" },
+        media: { label: "Multimedia",   badgeClass: "badge-media", badgeText: "Multimedia",  icon: "fa-photo-film" },
+        biz:   { label: "Business",     badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" },
+    };
+
+    
+    let currentCat = null;
+
+    
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cat = btn.dataset.cat; 
+
+            if (currentCat === cat) {
+                currentCat = null;
+                btn.classList.remove('active');
+                closeGrid();
+                return;
+            }
+
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCat = cat;
+            openGrid(cat); 
+        });
+    });
+
+    
+    function openGrid(cat) {
+        const grid    = document.getElementById('subjectGrid');
+        const label   = document.getElementById('gridLabel');
+        const wrapper = document.getElementById('subjectGridWrapper');
+
+        label.textContent = catMeta[cat]?.label || 'Subjects';
+
+        grid.innerHTML = '';
+
+        const entries = Object.entries(subjects).filter(([code, s]) => cat === 'all' || s.cat === cat);
+
+        entries.forEach(([code, s]) => {
+            const chip = document.createElement('div'); 
+            chip.className = 'subj-chip';
+            chip.dataset.cat = s.cat; 
+
+            chip.innerHTML = `
+                <span class="chip-dot"></span>
+                <span class="chip-info">
+                    <span class="chip-code">${code}</span>
+                    <span class="chip-name">${s.name}</span>
+                </span>
+            `;
+
+            chip.addEventListener('click', () => {
+                document.getElementById('searchInput').value = code;
+                search();
+                document.querySelector('.main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+
+            grid.appendChild(chip); 
+        });
+
+        wrapper.classList.add('open');
+    }
+
+    function closeGrid() {
+        document.getElementById('subjectGridWrapper').classList.remove('open');
+    }
+
+    function search() {
+        const input = document.getElementById('searchInput').value.trim().toUpperCase();
+        const resultCard = document.getElementById('resultCard');
+        const notFound   = document.getElementById('notFound');
+
+        resultCard.classList.remove('show');
+        notFound.classList.remove('show');
+
+        if (!input) return;
+
+        if (subjects[input]) {
+            const s    = subjects[input];
+            const meta = catMeta[s.cat]; 
+
+            document.getElementById('resultCode').textContent = input;
+            document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
+            document.getElementById('resultDesc').textContent = s.desc;
+
+            const badge = document.getElementById('resultBadge');
+            badge.className = `badge ${meta.badgeClass}`;
+            badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
+
+            resultCard.classList.add('show'); 
+        } else {
+            notFound.classList.add('show');
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') search();
+    });
+</script>
+
+</body>
+</html>
