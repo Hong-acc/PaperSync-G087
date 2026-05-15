@@ -120,9 +120,7 @@ def init_db():
         write_json('comments.json', comments)
 
 # CRUD Helper
-# USER & AUTHENTICATION
-# ------------------------------------------
-
+# -----USER & AUTHENTICATION-----
 def get_user_by_username(username):
     """Retrieve a user by their username."""
     users = read_json('users.json')
@@ -169,9 +167,7 @@ def add_admin(username, email, password):
     """Register a new admin."""
     return add_user(username, email, password, role="admin")
 
-# SUBJECTS & PAPERS
-# ------------------------------------------
-
+# -----SUBJECTS & PAPERS-----
 def get_all_subjects():
     """Retrieve all subjects."""
     return read_json('subjects.json')
@@ -193,9 +189,7 @@ def get_paper(subject_id, paper_id):
                 return paper
     return None
 
-# SOLUTIONS & FILE UPLOADS
-# ------------------------------------------
-
+# -----SOLUTIONS & FILE UPLOADS-----
 def add_solution(paper_id, uploader_id, uploader_username, filepath):
     """Add a new solution entry to solutions.json."""
     solutions = read_json('solutions.json')
@@ -226,6 +220,65 @@ def get_solution_by_id(solution_id):
         if s.get('solution_id') == solution_id:
             return s
     return None
+
+# -----INTERACTIVE FEATURES (VOTING & COMMENTS)-----
+def update_solution_upvotes(solution_id, user_id):
+    """Toggle the upvotes for a solution by a user."""
+    solutions = read_json('solutions.json')
+    for s in solutions:
+        if s.get('solution_id') == solution_id:
+            upvoted_by = s.get('upvoted_by', [])
+            if user_id in upvoted_by:
+                # Remove upvote
+                upvoted_by.remove(user_id)
+                s['upvotes'] = max(0, s.get('upvotes', 1) - 1)
+            else:
+                # Add upvote
+                upvoted_by.append(user_id)
+                s['upvotes'] = s.get('upvotes', 0) + 1
+            s['upvoted_by'] = upvoted_by
+            write_json('solutions.json', solutions)
+            return s
+    return None
+
+def update_solution_flags(solution_id, user_id):
+    """Toggle the flags for a solution by a user."""
+    solutions = read_json('solutions.json')
+    for s in solutions:
+        if s.get('solution_id') == solution_id:
+            flagged_by = s.get('flagged_by', [])
+            if user_id in flagged_by:
+                # Remove flag
+                flagged_by.remove(user_id)
+                s['flags'] = max(0, s.get('flags', 1) - 1)
+            else:
+                # Add flag
+                flagged_by.append(user_id)
+                s['flags'] = s.get('flags', 0) + 1
+            s['flagged_by'] = flagged_by
+            write_json('solutions.json', solutions)
+            return s
+    return None
+
+def add_comment(target_type, target_id, user_id, username, text):
+    """Add a new comment to comments.json."""
+    comments = read_json('comments.json')
+    new_comment = {
+        "comment_id": str(uuid.uuid4()),
+        "target_type": target_type,  # 'paper' or 'solution'
+        "target_id": target_id,
+        "user_id": user_id,
+        "username": username,
+        "text": text
+    }
+    comments.append(new_comment)
+    write_json('comments.json', comments)
+    return new_comment
+
+def get_comments_by_target(target_type, target_id):
+    """Retrieve all comments for a specific target (paper or solution)."""
+    comments = read_json('comments.json')
+    return [c for c in comments if c['target_type'] == target_type and c['target_id'] == target_id]
 
 if __name__ == '__main__':
     init_db()
