@@ -121,7 +121,6 @@ def init_db():
 
 # CRUD Helper
 # -----USER & AUTHENTICATION-----
-
 def get_user_by_username(username):
     """Retrieve a user by their username."""
     users = read_json('users.json')
@@ -169,7 +168,6 @@ def add_admin(username, email, password):
     return add_user(username, email, password, role="admin")
 
 # -----SUBJECTS & PAPERS-----
-
 def get_all_subjects():
     """Retrieve all subjects."""
     return read_json('subjects.json')
@@ -192,7 +190,6 @@ def get_paper(subject_id, paper_id):
     return None
 
 # -----SOLUTIONS & FILE UPLOADS-----
-
 def add_solution(paper_id, uploader_id, uploader_username, filepath):
     """Add a new solution entry to solutions.json."""
     solutions = read_json('solutions.json')
@@ -225,7 +222,6 @@ def get_solution_by_id(solution_id):
     return None
 
 # -----INTERACTIVE FEATURES (VOTING & COMMENTS)-----
-
 def update_solution_upvotes(solution_id, user_id):
     """Toggle the upvotes for a solution by a user."""
     solutions = read_json('solutions.json')
