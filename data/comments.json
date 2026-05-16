@@ -1,88 +1,34 @@
 [
     {
-        "id": "2",
-        "user": "diajidja",
-        "paper": "CMT1001",
-        "text": "fdd",
-        "votes": 2,
-        "voters": {
-            "guest": "upvote",
-            "A": "upvote"
-        },
-        "replies": [
-            {
-                "user": "A",
-                "text": "rgtrdfs"
-            },
-            {
-                "user": "hsuaij",
-                "text": "fxfz"
-            }
-        ]
-    },
-    {
-        "id": "4",
-        "user": "A",
-        "paper": "CMT1001",
-        "text": "fdd",
-        "votes": 0,
-        "voters": {
-            "A": "upvote",
-            "hsuaij": "downvote"
-        },
-        "replies": [
-            {
-                "user": "adaddd",
-                "text": "ajnjdnaf"
-            }
-        ]
-    },
-    {
-        "id": "5",
-        "user": "adaddd",
-        "paper": "CMT1001",
-        "text": "Test",
-        "votes": 0,
-        "voters": {},
-        "replies": []
-    },
-    {
-        "id": "6",
-        "user": "adaddd",
-        "paper": "CMT1001",
-        "text": "Test",
-        "votes": 0,
-        "voters": {},
-        "replies": []
-    },
-    {
         "id": "1",
-        "user": "fgsg",
-        "paper": "CMT1001",
-        "text": "fhfljghg",
-        "votes": -1,
+        "user": "n",
+        "paper": "",
+        "text": "g",
+        "votes": 1,
         "voters": {
-            "user1": "downvote",
-            "guest": "downvote",
-            "A": "upvote"
+            "n": "upvote"
         },
         "replies": [
             {
-                "user": "anonymous",
-                "text": "jfjajjs"
+                "user": "n",
+                "text": "g"
             }
         ]
     },
     {
-        "id": "3",
-        "user": "A",
-        "paper": "CMT1001",
-        "text": "dds",
-        "votes": -2,
+        "id": "2",
+        "user": "n",
+        "paper": "",
+        "text": "ds",
+        "votes": 1,
         "voters": {
-            "A": "downvote",
-            "hsuaij": "downvote"
+            "n": "upvote"
         },
-        "replies": []
+        "replies": [
+            {
+                "user": "n",
+                "text": "da"
+            }
+        ]
     }
 ]

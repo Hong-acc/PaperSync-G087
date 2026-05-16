@@ -47,5 +47,33 @@
         "username": "adaddd",
         "password_hash": "scrypt:32768:8:1$9za1mEGkfGItgFUn$4282667f5f38a94a58af1a635a428153787425e74f5c6c6295e55ef531cb18441627be8854c1dbed6961e7d00bad923bc550ad8c2afd37a7075970d6f14f3e67",
         "role": "student"
+    },
+    {
+        "user_id": "8",
+        "user_email": "tdt",
+        "username": "n",
+        "password_hash": "scrypt:32768:8:1$4lHEpqtZIliVObiq$322243482ef6e57b6849095e50fd75f7887fb7795d2b7d18bdb9d68a3038ca7da18648117d3af4fa649543429f84f39f7efd278e1819c9e39a2672491f5e6fc7",
+        "role": "student"
+    },
+    {
+        "user_id": "9",
+        "user_email": "dasd",
+        "username": "m",
+        "password_hash": "scrypt:32768:8:1$Q7kvvF90ZxZ8Vo4t$ea4d02579b256c602700dd137e45ddb43434370b34a298b0ba1d157387d9b33902ef7f8567817aa179da2aaf588a7ae2240c3c8f9fa6a52207c82a6f310c71bb",
+        "role": "student"
+    },
+    {
+        "user_id": "10",
+        "user_email": "sss",
+        "username": "sss",
+        "password_hash": "scrypt:32768:8:1$4J4jjYZtufAkMBeJ$a22ae530158c32df9577f67f9528e41912a99d29cdfb641009cf4c132b12ab6dd94f2f5d04cd3d2ae775086575e086b9c4fc663351b41e04578c0048b3266730",
+        "role": "student"
+    },
+    {
+        "user_id": "fccc1ddf-5e4d-464b-9d2c-7e3dce53b9d4",
+        "username": "op",
+        "user_email": "sh@gmail.com",
+        "password_hash": "scrypt:32768:8:1$g7yuUTWKMWBtkr6Z$cce548c4022832279186a0aea3c39fa2d29b527b7bad992980e07d34a35320d3f3c1f1fc448217d94881683e5e1238d2f6c10b86ff7a0f69cfe12bd0c731d861",
+        "role": "student"
     }
 ]
