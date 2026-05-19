@@ -3,14 +3,14 @@
         "user_id": "1",
         "username": "admin",
         "user_email": "admin@mmu.edu.my",
-        "password_hash": "scrypt:32768:8:1$g8m3GtOpVqLGed6Q$...",
+        "password_hash": "scrypt:32768:8:1$ThZJseBiJAeebKBr$f03d24f8982656a41cc7d12cf6e101b39c7a7560168df29c9dd87f2e0e875c9a3194dedd848a4ef3314cd76affaa3ae63b1b53f6283e3e506df469d959fa6641",
         "role": "admin"
     },
     {
         "user_id": "2",
         "username": "student",
         "user_email": "student@student.mmu.edu.my",
-        "password_hash": "scrypt:32768:8:1$differentHash$...",
+        "password_hash": "scrypt:32768:8:1$UsmBrTw4Ey6zLWeO$569d8814257d21bf1e5d6170fffed21479fffd2e5909c5bfd8b9a807234d5bbb904d231a6ad287a29ce023bb62edb6b53ae278ed7c7ba71501526b3affd688ce",
         "role": "student"
     }
 ]
