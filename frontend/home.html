@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Student Peer Support Platform - Home</title>
+
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="top-bar">
+    <span class="site-name">📚 Student Peer Support Platform</span>
+    <span class="user-info">Welcome, user-info</span>
+</div>
+
+<nav class="cat-nav" id="catNav">
+    <button class="cat-btn" data-cat="all">
+        <span class="cat-icon"><i class="fa-solid fa-border-all"></i></span>
+        All Subjects
+    </button>
+    <button class="cat-btn" data-cat="math">
+        <span class="cat-icon"><i class="fa-solid fa-square-root-variable"></i></span>
+        Mathematics
+    </button>
+    <button class="cat-btn" data-cat="lang">
+        <span class="cat-icon"><i class="fa-solid fa-language"></i></span>
+        Languages
+    </button>
+    <button class="cat-btn" data-cat="sci">
+        <span class="cat-icon"><i class="fa-solid fa-flask"></i></span>
+        Science
+    </button>
+    <button class="cat-btn" data-cat="cs">
+        <span class="cat-icon"><i class="fa-solid fa-microchip"></i></span>
+        Computing
+    </button>
+    <button class="cat-btn" data-cat="media">
+        <span class="cat-icon"><i class="fa-solid fa-photo-film"></i></span>
+        Multimedia
+    </button>
+    <button class="cat-btn" data-cat="biz">
+        <span class="cat-icon"><i class="fa-solid fa-briefcase"></i></span>
+        Business
+    </button>
+</nav>
+
+<div class="subject-grid-wrapper" id="subjectGridWrapper">
+    <div style="max-width:760px; margin:0 auto; padding:0 20px 28px;">
+        <div class="subject-grid-label" id="gridLabel">All Subjects</div>
+        <div class="subject-grid" id="subjectGrid"></div>
+    </div>
+</div>
+
+<div class="main">
+    <h2>Find Your Subject</h2>
+    <p class="hint">Enter the subject code to search (eg. CMT1114), or browse by category above</p>
+
+    <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Enter subject code..." />
+        <button onclick="search()">Search</button>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="badge" id="resultBadge"></div>       
+        <div class="code" id="resultCode"></div>          
+        <div class="subject-name" id="resultName"></div> 
+        <div class="description" id="resultDesc"></div> 
+    </div>
+
+    <div class="not-found" id="notFound">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>
+        Subject not found. Please check the code and try again.
+    </div>
+
+    <div class="upload-section" id="uploadSection">
+        <div class="upload-card">
+            <h3> Upload Answer — <span id="uploadSubjectLabel"></span></h3>
+            <div class="upload-fields">
+                <div class="field-group">
+                    <label>Your Name</label>
+                    <input type="text" id="uploaderName" />
+                </div>
+                <div class="field-group">
+                    <label>Answer Type</label>
+                    <select id="answerType">
+                        <option disabled selected>Select type…</option>
+                        <option>Past Paper Answer</option>
+                        <option>Tutorial Solution</option>
+                        <option>Assignment Answer</option>
+                        <option>Study Notes</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>File</label>
+                    <input type="file" id="fileInput" />
+                </div>
+            </div>
+            <button class="btn-upload" onclick="submitUpload()">Submit Answer</button>
+        </div>
+    </div>
+
+    <!-- COMMENT SECTION -->
+    <div class="comment-section" id="commentSection">
+        <h3>Forum Discussion</h3>
+
+        <div class="comment-input">
+            <input type="text" id="commentInput" placeholder="Write a comment..." />
+            <button onclick="submitComment()">Post</button>
+        </div>
+
+        <div id="commentList"></div>
+    </div>
+</div>
+
+<script>
+
+/* ================= USER STATE (FIXED) ================= */
+let currentUser = "guest";
+
+function syncUser(){
+    fetch("/me", { credentials: "include" })
+    .then(r => r.json())
+    .then(data => {
+        const u = data.user?.username || data.user || "guest";
+        currentUser = u;
+        localStorage.setItem("currentUser", u);
+
+        const el = document.querySelector(".user-info");
+        if (el) el.textContent = "Welcome, " + u;
+    })
+    .catch(() => {
+        const saved = localStorage.getItem("currentUser");
+        if (saved) currentUser = saved;
+    });
+}
+
+syncUser();
+
+
+/* ================= SUBJECTS ================= */
+let subjects = {};
+let subjectsReady = false;   // ⭐关键修复
+
+fetch('/subjects')
+.then(res => res.json())
+.then(data => {
+    data.forEach(subj => {
+        subjects[subj.subject_code] = {
+            name: subj.name,
+            desc: subj.desc || "No description available.",
+            cat: subj.cat || "cs",
+            icon: subj.icon || "fa-book"
+        };
+    });
+    subjectsReady = true;   // ⭐关键
+});
+
+
+const catMeta = {
+    all:{label:"All Subjects",badgeClass:"badge-other",badgeText:"General",icon:"fa-border-all"},
+    math:{label:"Mathematics",badgeClass:"badge-math",badgeText:"Mathematics",icon:"fa-square-root-variable"},
+    lang:{label:"Languages",badgeClass:"badge-lang",badgeText:"Languages",icon:"fa-language"},
+    sci:{label:"Science",badgeClass:"badge-sci",badgeText:"Science",icon:"fa-flask"},
+    cs:{label:"Computing",badgeClass:"badge-cs",badgeText:"Computing",icon:"fa-microchip"},
+    media:{label:"Multimedia",badgeClass:"badge-media",badgeText:"Multimedia",icon:"fa-photo-film"},
+    biz:{label:"Business",badgeClass:"badge-biz",badgeText:"Business",icon:"fa-briefcase"}
+};
+
+
+/* ================= NAV SAFE GUARD ================= */
+function ensureSubjectsReady(){
+    if(!subjectsReady){
+        alert("Data still loading, please wait...");
+        return false;
+    }
+    return true;
+}
+
+
+/* ================= NAVIGATION (UNCHANGED LOGIC) ================= */
+let currentCat = null;
+
+document.querySelectorAll('.cat-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        if(!ensureSubjectsReady()) return;  // ⭐防止空数据
+
+        const cat=btn.dataset.cat;
+
+        if(currentCat===cat){
+            currentCat=null;
+            btn.classList.remove('active');
+            closeGrid();
+            return;
+        }
+
+        document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCat=cat;
+        openGrid(cat);
+    });
+});
+
+
+function openGrid(cat){
+    if(!ensureSubjectsReady()) return;   // ⭐防双保险
+
+    const grid=document.getElementById('subjectGrid');
+    const label=document.getElementById('gridLabel');
+    const wrapper=document.getElementById('subjectGridWrapper');
+
+    label.textContent=catMeta[cat]?.label||"Subjects";
+    grid.innerHTML="";
+
+    Object.entries(subjects)
+    .filter(([c,s])=>cat==="all"||s.cat===cat)
+    .forEach(([code,s])=>{
+        const chip=document.createElement("div");
+        chip.className="subj-chip";
+
+        chip.innerHTML=`
+            <span class="chip-code">${code}</span>
+            <span class="chip-name">${s.name}</span>
+        `;
+
+        chip.onclick=()=>{
+            document.getElementById("searchInput").value=code;
+            search();
+        };
+
+        grid.appendChild(chip);
+    });
+
+    wrapper.classList.add("open");
+}
+
+
+function closeGrid(){
+    document.getElementById("subjectGridWrapper").classList.remove("open");
+}
+
+
+/* ================= SEARCH ================= */
+function search(){
+    const input=document.getElementById("searchInput").value.trim().toUpperCase();
+
+    document.getElementById("resultCard").classList.remove("show");
+    document.getElementById("notFound").classList.remove("show");
+    document.getElementById("commentSection").classList.remove("show");
+
+    if(!input) return;
+
+    if(subjects[input]){
+        const s=subjects[input];
+        const meta=catMeta[s.cat];
+
+        document.getElementById("resultCode").textContent=input;
+        document.getElementById("resultName").innerHTML=
+            `<i class="fa-solid ${s.icon}"></i> ${s.name}`;
+        document.getElementById("resultDesc").textContent=s.desc;
+
+        const badge=document.getElementById("resultBadge");
+        badge.className=`badge ${meta.badgeClass}`;
+        badge.innerHTML=`<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
+
+        document.getElementById("resultCard").classList.add("show");
+
+        const upload = document.getElementById("uploadSection");
+        if(upload) upload.classList.add("show");
+
+        loadComments(input);
+    } else {
+        document.getElementById("notFound").classList.add("show");
+    }
+}
+
+
+/* ================= COMMENTS ================= */
+function loadComments(code){
+fetch(`/comments?target_id=${code}`, {
+    credentials:"include"
+})
+.then(r=>r.json())
+.then(data=>{
+    const list=document.getElementById("commentList");
+    list.innerHTML="";
+
+    if(!data?.length){
+        list.innerHTML="<p style='color:#999'>No discussion yet</p>";
+        return;
+    }
+
+    data.sort((a,b)=>(b.votes||0)-(a.votes||0));
+
+    data.forEach(c=>{
+        const up = c.voters ? Object.values(c.voters).filter(v=>v==="upvote").length : 0;
+        const down = c.voters ? Object.values(c.voters).filter(v=>v==="downvote").length : 0;
+
+        const div=document.createElement("div");
+        div.className="comment-card";
+
+        div.innerHTML=`
+            <b>${c.user || "guest"}</b>
+            <div style="margin:6px 0">${c.text}</div>
+
+            <div style="display:flex; gap:14px; align-items:center;">
+                <button onclick="vote('${c.id}','upvote')">👍 ${up}</button>
+                <button onclick="vote('${c.id}','downvote')">👎 ${down}</button>
+                <span style="margin-left:auto;">score: ${c.votes||0}</span>
+            </div>
+        `;
+
+        list.appendChild(div);
+    });
+
+    document.getElementById("commentSection").classList.add("show");
+});
+}
+
+
+/* ================= VOTE ================= */
+function vote(id, action){
+fetch("/vote", {
+    method:"POST",
+    credentials:"include",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+        id,
+        action,
+        user: currentUser
+    })
+}).then(()=>{
+    const code=document.getElementById("searchInput").value.trim().toUpperCase();
+    loadComments(code);
+});
+}
+
+
+/* ================= COMMENT ================= */
+function submitComment(){
+    const text=document.getElementById("commentInput").value.trim();
+    const code=document.getElementById("searchInput").value.trim().toUpperCase();
+
+    if(!text||!code) return;
+
+    fetch("/comment", {
+        method:"POST",
+        credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            user: currentUser,
+            target_id:code,
+            text:text
+        })
+    }).then(()=>{
+        document.getElementById("commentInput").value="";
+        loadComments(code);
+    });
+}
+
+</script>
+
+</body>
+</html>
