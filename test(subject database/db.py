@@ -63,13 +63,18 @@ def init_db():
                 "papers": [
                     {
                         "paper_id": "p1",
-                        "year": "2023",
+                        "year": "2025",
                         "trimester": "Tri 1"
                     },
                     {
                         "paper_id": "p2",
-                        "year": "2023",
+                        "year": "2025",
                         "trimester": "Tri 2"
+                    },
+                    {
+                        "paper_id": "p3",
+                        "year": "2025",
+                        "trimester": "Tri 3"
                     }
                 ]
             },
@@ -79,9 +84,9 @@ def init_db():
                 "subject_code": "CSP1114",
                 "papers": [
                     {
-                        "paper_id": "p3",
-                        "year": "2023",
-                        "trimester": "Tri 2"
+                        "paper_id": "p4",
+                        "year": "2025",
+                        "trimester": "Tri 1"
                     }
                 ]
             }

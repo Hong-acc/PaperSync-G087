@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <title>Student Peer Support Platform - Home</title>
+    <title>PaperSync - Home</title>
 
     <!-- Font Awesome：用来显示各种小图标（如计算器、电脑、书本等） -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -26,13 +26,12 @@
 
         
         body {
-            font-family: 'DM Sans', Arial, sans-serif;
-            background: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
-                url("bg.png") no-repeat center center fixed;
-            background-size: cover;
-            color: #333;
-            min-height: 100vh; 
-        }
+    font-family: 'DM Sans', Arial, sans-serif;
+    background: #cde4fb;
+    color: #333;
+    min-height: 100vh;
+}
+
 
        
         .top-bar {
@@ -283,12 +282,37 @@
     font-weight: 600; cursor: pointer;
 }
 .btn-upload:hover { background: var(--accent-dark); }
+
+.comment-section{display:none;margin-top:24px;}
+.comment-section.show{display:block;}
+.cm-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;font-size:0.87rem;}
+.cm-name{font-weight:600;color:#1a1a2e;margin-bottom:4px;}
+.cm-text{color:#374151;line-height:1.6;margin-bottom:10px;}
+.cm-votes{display:flex;gap:8px;}
+.cm-vote{padding:3px 12px;border:1.5px solid #e5e7eb;border-radius:20px;background:none;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;color:#6b7280;}
+.cm-vote.yes{border-color:#6ee7b7;color:#059669;background:#ecfdf5;}
+.cm-vote.no{border-color:#fca5a5;color:#dc2626;background:#fef2f2;}
+.cm-form{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-top:8px;}
+.cm-form input,.cm-form textarea{width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.87rem;outline:none;box-sizing:border-box;margin-bottom:8px;}
+.cm-form textarea{min-height:68px;resize:none;}
+.cm-form button{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.87rem;cursor:pointer;}
+
+.papers-section{display:none;margin-top:18px;}
+.papers-section.show{display:block;}
+.papers-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.papers-title{font-size:0.85rem;font-weight:700;color:#1a1a2e;}
+.papers-filter{padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;}
+.paper-row{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.paper-info{font-size:0.87rem;color:#374151;}<br>
+.paper-info span{font-weight:600;color:#1a1a2e;}
+.btn-view{padding:8px 16px;background:#10b981;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;}
+.btn-view:hover{background:#059669;}    
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <span class="site-name">📚 Student Peer Support Platform</span>
+    <span class="site-name">📚 PaperSync <i class="fa-solid fa-people-group"></i> </span>
     <span class="user-info">Welcome, user-info</span>
 </div>
 
@@ -369,14 +393,41 @@
                 </select>
             </div>
             <div class="field-group">
+    <label>Year & Trimester</label>
+    <select id="answerYear">
+        <option value="" disabled selected>Select year…</option>
+    </select>
+</div>
+            <div class="field-group">
                 <label>File</label>
                 <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.zip" />
             </div>
         </div>
         <button class="btn-upload" onclick="submitUpload()">Submit Answer</button>
     </div>
+    
+  </div>
+</div>
 </div>
     </div>
+</div>
+<div class="papers-section" id="papersSection">
+  <div class="papers-header">
+    <div class="papers-title">Available Past Year Papers</div>
+    <select class="papers-filter" id="yearFilter" onchange="renderPapers()">
+      <option value="">All Years</option>
+    </select>
+  </div>
+  <div id="papersList"></div>
+</div>
+
+<div class="comment-section" id="commentSection">
+  <div id="cmList"></div>
+  <div class="cm-form">
+    <input id="cmName" placeholder="Your name" />
+    <textarea id="cmText" placeholder="Ask a question or share tips…"></textarea>
+    <button onclick="postCm()">Post comment</button>
+  </div>
 </div>
 
 
@@ -396,7 +447,6 @@ fetch('/subjects')
         });
     });
 
-    
     const catMeta = {
         all:   { label: "All Subjects", badgeClass: "badge-other", badgeText: "General",     icon: "fa-border-all" },
         math:  { label: "Mathematics",  badgeClass: "badge-math",  badgeText: "Mathematics", icon: "fa-square-root-variable" },
@@ -407,45 +457,35 @@ fetch('/subjects')
         biz:   { label: "Business",     badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" },
     };
 
-    
     let currentCat = null;
 
-    
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const cat = btn.dataset.cat; 
-
+            const cat = btn.dataset.cat;
             if (currentCat === cat) {
                 currentCat = null;
                 btn.classList.remove('active');
                 closeGrid();
                 return;
             }
-
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentCat = cat;
-            openGrid(cat); 
+            openGrid(cat);
         });
     });
 
-    
     function openGrid(cat) {
         const grid    = document.getElementById('subjectGrid');
         const label   = document.getElementById('gridLabel');
         const wrapper = document.getElementById('subjectGridWrapper');
-
         label.textContent = catMeta[cat]?.label || 'Subjects';
-
         grid.innerHTML = '';
-
         const entries = Object.entries(subjects).filter(([code, s]) => cat === 'all' || s.cat === cat);
-
         entries.forEach(([code, s]) => {
-            const chip = document.createElement('div'); 
+            const chip = document.createElement('div');
             chip.className = 'subj-chip';
-            chip.dataset.cat = s.cat; 
-
+            chip.dataset.cat = s.cat;
             chip.innerHTML = `
                 <span class="chip-dot"></span>
                 <span class="chip-info">
@@ -453,16 +493,13 @@ fetch('/subjects')
                     <span class="chip-name">${s.name}</span>
                 </span>
             `;
-
             chip.addEventListener('click', () => {
                 document.getElementById('searchInput').value = code;
                 search();
                 document.querySelector('.main').scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
-
-            grid.appendChild(chip); 
+            grid.appendChild(chip);
         });
-
         wrapper.classList.add('open');
     }
 
@@ -474,6 +511,8 @@ fetch('/subjects')
         const input = document.getElementById('searchInput').value.trim().toUpperCase();
         const resultCard = document.getElementById('resultCard');
         const notFound   = document.getElementById('notFound');
+        const section    = document.getElementById('uploadSection');
+        const comments   = document.getElementById('commentSection');
 
         resultCard.classList.remove('show');
         notFound.classList.remove('show');
@@ -482,46 +521,111 @@ fetch('/subjects')
 
         if (subjects[input]) {
             const s    = subjects[input];
-            const meta = catMeta[s.cat]; 
-
+            const meta = catMeta[s.cat];
             document.getElementById('resultCode').textContent = input;
             document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
             document.getElementById('resultDesc').textContent = s.desc;
-
             const badge = document.getElementById('resultBadge');
             badge.className = `badge ${meta.badgeClass}`;
             badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
-
-            resultCard.classList.add('show'); 
+            resultCard.classList.add('show');
+            loadPapers(input);
+            document.getElementById('uploadSubjectLabel').textContent = input;
+            section.classList.add('show');
+            comments.classList.add('show');
+            loadComments(input);
         } else {
             notFound.classList.add('show');
+            section.classList.remove('show');
+            comments.classList.remove('show');
         }
     }
 
     document.getElementById('searchInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') search();
     });
-    const _orig = search;
-search = function() {
-    _orig();
-    const code = document.getElementById('searchInput').value.trim().toUpperCase();
-    const section = document.getElementById('uploadSection');
-    if (subjects[code]) {
-        document.getElementById('uploadSubjectLabel').textContent = code;
-        section.classList.add('show');
-    } else {
-        section.classList.remove('show');
-    }
-};
 
-function submitUpload() {
-    const name = document.getElementById('uploaderName').value.trim();
-    const type = document.getElementById('answerType').value;
-    const file = document.getElementById('fileInput').files[0];
-    if (!name || !type || !file) { alert('Please fill in all fields.'); return; }
-    alert(`"${file.name}" submitted! Thank you, ${name}.`);
+    function loadPapers(code) {
+  const subject = Object.values(subjects).find((s,i) => Object.keys(subjects)[i] === code);
+  fetch('/subjects')
+    .then(r => r.json())
+    .then(data => {
+      const subj = data.find(s => s.subject_code === code);
+      if (!subj || !subj.papers) return;
+      const filter = document.getElementById('yearFilter');
+      const years = [...new Set(subj.papers.map(p => p.year))].sort((a,b) => b-a);
+      filter.innerHTML = '<option value="">All Years</option>' + years.map(y => `<option>${y}</option>`).join('');
+      filter._papers = subj.papers;
+      filter._subjId = subj.subject_id;
+      document.getElementById('papersSection').classList.add('show');
+      const yearSel = document.getElementById('answerYear');
+yearSel.innerHTML = '<option value="" disabled selected>Select year…</option>' +
+  subj.papers.map(p => `<option value="${p.paper_id}">${p.year} - ${p.trimester}</option>`).join('');
+      renderPapers();
+    });
 }
-</script>
 
+function renderPapers() {
+  const filter = document.getElementById('yearFilter');
+  const papers = filter._papers || [];
+  const year = filter.value;
+  const filtered = year ? papers.filter(p => p.year === year) : papers;
+  document.getElementById('papersList').innerHTML = filtered.map(p => `
+    <div class="paper-row">
+      <div class="paper-info">Year: <span>${p.year}</span> &nbsp;·&nbsp; Trimester: <span>${p.trimester}</span></div>
+      <button class="btn-view" onclick="alert('Coming soon!')">View Solutions & Discuss</button>
+    </div>`).join('');
+}
+    function submitUpload() {
+        const name = document.getElementById('uploaderName').value.trim();
+        const type = document.getElementById('answerType').value;
+        const file = document.getElementById('fileInput').files[0];
+        if (!name || !type || !file) { alert('Please fill in all fields.'); return; }
+        alert(`"${file.name}" submitted! Thank you, ${name}.`);
+    }
+
+    function loadComments(code) {
+        fetch('/comments')
+            .then(r => r.json())
+            .then(all => {
+                const cms = all.filter(c => c.paper === code);
+                document.getElementById('cmList').innerHTML = cms.map(c => `
+                    <div class="cm-card">
+                        <div class="cm-name">${c.user}</div>
+                        <div class="cm-text">${c.text}</div>
+                        <div class="cm-votes">
+                            <button class="cm-vote" onclick="voteCm('${c.id}','upvote',this)">👍 ${c.votes>0?c.votes:0}</button>
+                            <button class="cm-vote" onclick="voteCm('${c.id}','downvote',this)">👎 ${c.votes<0?Math.abs(c.votes):0}</button>
+                        </div>
+                    </div>`).join('');
+            });
+    }
+
+    function voteCm(id, action, btn) {
+        const name = document.getElementById('cmName').value.trim() || 'anonymous';
+        const code = document.getElementById('searchInput').value.trim().toUpperCase();
+        fetch('/vote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id, action, user: name })
+        }).then(() => loadComments(code));
+    }
+
+    function postCm() {
+        const name = document.getElementById('cmName').value.trim();
+        const text = document.getElementById('cmText').value.trim();
+        const code = document.getElementById('searchInput').value.trim().toUpperCase();
+        if (!name || !text) { alert('Please fill in all fields.'); return; }
+        fetch('/comment', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user: name, paper: code, text })
+        }).then(() => {
+            document.getElementById('cmName').value = '';
+            document.getElementById('cmText').value = '';
+            loadComments(code);
+        });
+    }
+</script>
 </body>
 </html>
