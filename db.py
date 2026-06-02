@@ -414,6 +414,25 @@ def delete_paper(subject_id, paper_id):
         
     return False
 
+def get_system_stats():
+    """Calculate and return system-wide statistics for the Admin Dashboard."""
+    users = read_json('users.json')
+    subjects = read_json('subjects.json')
+    solutions = read_json('solutions.json')
+    comments = read_json('comments.json')
+
+    total_papers = 0
+    for subject in subjects:
+        total_papers += len(subject.get('papers', []))
+
+    return {
+        "total_users": len(users),
+        "total_subjects": len(subjects),
+        "total_papers": total_papers,
+        "total_solutions": len(solutions),
+        "total_comments": len(comments)
+    }
+
 if __name__ == '__main__':
     init_db()
     print("Database initialized successfully.")
