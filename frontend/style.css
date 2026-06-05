@@ -373,3 +373,36 @@ input {
     color: #4b5563;
     margin-top: 4px;
 }
+/* ================= SOLUTION SECTION (MINIMAL FIX ONLY) ================= */
+
+#solutionSection {
+    margin-top: 20px;
+    display: none; /* 默认隐藏 */
+}
+
+#solutionSection.show {
+    display: block;
+}
+
+#solutionList {
+    margin-top: 10px;
+}
+
+/* 复用你现有 comment-card，不新增风格 */
+#solutionList .comment-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* download link 保持简单不破坏UI */
+#solutionList a {
+    color: #4f6ef7;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+#solutionList a:hover {
+    text-decoration: underline;
+}

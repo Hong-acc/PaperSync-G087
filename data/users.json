@@ -57,10 +57,10 @@
     },
     {
         "user_id": "9",
-        "user_email": "dasd",
+        "user_email": "admin@mmu.edu.my",
         "username": "m",
         "password_hash": "scrypt:32768:8:1$Q7kvvF90ZxZ8Vo4t$ea4d02579b256c602700dd137e45ddb43434370b34a298b0ba1d157387d9b33902ef7f8567817aa179da2aaf588a7ae2240c3c8f9fa6a52207c82a6f310c71bb",
-        "role": "student"
+        "role": "admin"
     },
     {
         "user_id": "10",

@@ -1,7 +1,7 @@
 import json
 import os
 import uuid
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -119,8 +119,12 @@ def init_db():
         ]
         write_json('comments.json', comments)
 
-# CRUD Helper
-# USER & AUTHENTICATION
+# ==========================================
+# FULL CRUD HELPER FUNCTIONS (API for app.py)
+# ==========================================
+
+# ------------------------------------------
+# USER MANAGEMENT & AUTHENTICATION
 # ------------------------------------------
 
 def get_user_by_username(username):
@@ -147,6 +151,10 @@ def get_user_by_id(user_id):
             return user
     return None
 
+def get_all_users():
+    """Retrieve all users."""
+    return read_json('users.json')
+
 def add_user(username, email, password, role="student"):
     """Register a new user."""
     users = read_json('users.json')
@@ -169,7 +177,8 @@ def add_admin(username, email, password):
     """Register a new admin."""
     return add_user(username, email, password, role="admin")
 
-# SUBJECTS & PAPERS
+# ------------------------------------------
+# SUBJECTS & PAPERS MANAGEMENT
 # ------------------------------------------
 
 def get_all_subjects():
@@ -193,6 +202,36 @@ def get_paper(subject_id, paper_id):
                 return paper
     return None
 
+def add_subject(name, subject_code):
+    """Add a new subject."""
+    subjects = read_json('subjects.json')
+    new_subject = {
+        "subject_id": str(uuid.uuid4()),
+        "name": name,
+        "subject_code": subject_code,
+        "papers": []
+    }
+    subjects.append(new_subject)
+    write_json('subjects.json', subjects)
+    return new_subject
+
+def add_paper_to_subject(subject_id, year, trimester):
+    """Add a new past year paper to an existing subject."""
+    subjects = read_json('subjects.json')
+    for subject in subjects:
+        if subject.get('subject_id') == subject_id:
+            new_paper = {
+                "paper_id": str(uuid.uuid4()),
+                "year": year,
+                "trimester": trimester
+            }
+            subject['papers'] = subject.get('papers', [])
+            subject['papers'].append(new_paper)
+            write_json('subjects.json', subjects)
+            return new_paper
+    return None
+
+# ------------------------------------------
 # SOLUTIONS & FILE UPLOADS
 # ------------------------------------------
 
@@ -226,6 +265,173 @@ def get_solution_by_id(solution_id):
         if s.get('solution_id') == solution_id:
             return s
     return None
+
+# ------------------------------------------
+# INTERACTIVE FEATURES (VOTING & COMMENTS)
+# ------------------------------------------
+
+def update_solution_upvotes(solution_id, user_id):
+    """Toggle the upvotes for a solution by a user."""
+    solutions = read_json('solutions.json')
+    for s in solutions:
+        if s.get('solution_id') == solution_id:
+            upvoted_by = s.get('upvoted_by', [])
+            if user_id in upvoted_by:
+                # Remove upvote
+                upvoted_by.remove(user_id)
+                s['upvotes'] = max(0, s.get('upvotes', 1) - 1)
+            else:
+                # Add upvote
+                upvoted_by.append(user_id)
+                s['upvotes'] = s.get('upvotes', 0) + 1
+            s['upvoted_by'] = upvoted_by
+            write_json('solutions.json', solutions)
+            return s
+    return None
+
+def update_solution_flags(solution_id, user_id):
+    """Toggle the flags for a solution by a user."""
+    solutions = read_json('solutions.json')
+    for s in solutions:
+        if s.get('solution_id') == solution_id:
+            flagged_by = s.get('flagged_by', [])
+            if user_id in flagged_by:
+                # Remove flag
+                flagged_by.remove(user_id)
+                s['flags'] = max(0, s.get('flags', 1) - 1)
+            else:
+                # Add flag
+                flagged_by.append(user_id)
+                s['flags'] = s.get('flags', 0) + 1
+            s['flagged_by'] = flagged_by
+            write_json('solutions.json', solutions)
+            return s
+    return None
+
+def add_comment(target_type, target_id, user_id, username, text):
+    """Add a new comment to comments.json."""
+    comments = read_json('comments.json')
+    new_comment = {
+        "comment_id": str(uuid.uuid4()),
+        "target_type": target_type,  # 'paper' or 'solution'
+        "target_id": target_id,
+        "user_id": user_id,
+        "username": username,
+        "text": text
+    }
+    comments.append(new_comment)
+    write_json('comments.json', comments)
+    return new_comment
+
+def get_comments_by_target(target_type, target_id):
+    """Retrieve all comments for a specific target (paper or solution)."""
+    comments = read_json('comments.json')
+    return [c for c in comments if c['target_type'] == target_type and c['target_id'] == target_id]
+
+# ------------------------------------------
+# ADMINISTRATIVE OPERATIONS
+# ------------------------------------------
+
+def update_user_status(user_id, status):
+    """Update a user's status (e.g., 'active' or 'banned')."""
+    users = read_json('users.json')
+    for u in users:
+        if u.get('user_id') == str(user_id):
+            u['status'] = status
+            write_json('users.json', users)
+            return True
+    return False
+
+def delete_solution(solution_id, user_id=None, role=None):
+    """Delete a solution by its ID. Users can delete their own solutions; admins can delete any."""
+    solutions = read_json('solutions.json')
+    initial_len = len(solutions)
+    
+    if user_id and role != 'admin':
+        # Verify ownership
+        solution = next((s for s in solutions if s.get('solution_id') == solution_id), None)
+        if not solution or solution.get('uploader_id') != str(user_id):
+            return False
+            
+    solutions = [s for s in solutions if s.get('solution_id') != solution_id]
+    if len(solutions) < initial_len:
+        write_json('solutions.json', solutions)
+        return True
+    return False
+
+def delete_comment(comment_id, user_id=None, role=None):
+    """Delete a comment by its ID. Users can delete their own comments; admins can delete any."""
+    comments = read_json('comments.json')
+    initial_len = len(comments)
+    
+    if user_id and role != 'admin':
+        # Verify ownership
+        comment = next((c for c in comments if c.get('comment_id') == comment_id), None)
+        if not comment or comment.get('user_id') != str(user_id):
+            return False
+            
+    comments = [c for c in comments if c.get('comment_id') != comment_id]
+    if len(comments) < initial_len:
+        write_json('comments.json', comments)
+        return True
+    return False
+
+def delete_paper(subject_id, paper_id):
+    """Delete a paper from a subject and cleanly remove associated solutions and comments. Returns list of deleted filepaths."""
+    subjects = read_json('subjects.json')
+    paper_found = False
+    
+    for subject in subjects:
+        if subject.get('subject_id') == subject_id:
+            initial_len = len(subject.get('papers', []))
+            subject['papers'] = [p for p in subject.get('papers', []) if p.get('paper_id', p.get('id')) != paper_id]
+            if len(subject['papers']) < initial_len:
+                paper_found = True
+            break
+            
+    if paper_found:
+        write_json('subjects.json', subjects)
+        
+        # Cascade delete solutions
+        solutions = read_json('solutions.json')
+        solutions_to_keep = []
+        deleted_filepaths = []
+        for s in solutions:
+            if s.get('paper_id') == paper_id:
+                if s.get('filepath'):
+                    deleted_filepaths.append(s.get('filepath'))
+            else:
+                solutions_to_keep.append(s)
+                
+        write_json('solutions.json', solutions_to_keep)
+        
+        # Cascade delete comments
+        comments = read_json('comments.json')
+        comments = [c for c in comments if not (c.get('target_type') == 'paper' and c.get('target_id') == paper_id)]
+        write_json('comments.json', comments)
+        
+        return deleted_filepaths
+        
+    return False
+
+def get_system_stats():
+    """Calculate and return system-wide statistics for the Admin Dashboard."""
+    users = read_json('users.json')
+    subjects = read_json('subjects.json')
+    solutions = read_json('solutions.json')
+    comments = read_json('comments.json')
+
+    total_papers = 0
+    for subject in subjects:
+        total_papers += len(subject.get('papers', []))
+
+    return {
+        "total_users": len(users),
+        "total_subjects": len(subjects),
+        "total_papers": total_papers,
+        "total_solutions": len(solutions),
+        "total_comments": len(comments)
+    }
 
 if __name__ == '__main__':
     init_db()

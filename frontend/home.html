@@ -3,51 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <title>Student Peer Support Platform - Home</title>
+    <title>PaperSync - Home</title>
 
-    <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-</head>
 
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --accent: #4f6ef7;
+            --accent-dark: #3655e8;
+            --cat-math: #f59e0b;
+            --cat-lang: #10b981;
+            --cat-sci: #8b5cf6;
+            --cat-cs: #3b82f6;
+            --cat-media: #ec4899;
+            --cat-biz: #f97316;
+        }
+
+        body {
+            font-family: 'DM Sans', Arial, sans-serif;
+            background: #cde4fb;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* ── TOP BAR ── */
+        .top-bar {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+        .top-bar .site-name { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+        .top-bar .user-info { font-size: 0.85rem; color: #6b7280; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .admin-btn {
+            padding: 6px 14px;
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.18s;
+        }
+        .admin-btn:hover { background: #2d2d4e; }
+
+        /* ── CAT NAV ── */
+        .cat-nav {
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0 28px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            position: sticky;
+            top: 53px;
+            z-index: 100;
+        }
+        .cat-nav::-webkit-scrollbar { display: none; }
+
+        .cat-btn {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: #6b7280;
+            white-space: nowrap;
+            border-bottom: 2.5px solid transparent;
+            transition: color 0.18s, border-color 0.18s;
+            position: relative;
+            top: 1px;
+        }
+        .cat-btn .cat-icon {
+            width: 26px; height: 26px; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; flex-shrink: 0; transition: transform 0.18s;
+        }
+        .cat-btn:hover .cat-icon { transform: scale(1.12); }
+        .cat-btn[data-cat="all"]   .cat-icon { background: #f3f4f6; color: #374151; }
+        .cat-btn[data-cat="math"]  .cat-icon { background: #fef3c7; color: #d97706; }
+        .cat-btn[data-cat="lang"]  .cat-icon { background: #d1fae5; color: #059669; }
+        .cat-btn[data-cat="sci"]   .cat-icon { background: #ede9fe; color: #7c3aed; }
+        .cat-btn[data-cat="cs"]    .cat-icon { background: #dbeafe; color: #1d4ed8; }
+        .cat-btn[data-cat="media"] .cat-icon { background: #fce7f3; color: #be185d; }
+        .cat-btn[data-cat="biz"]   .cat-icon { background: #ffedd5; color: #c2410c; }
+        .cat-btn:hover { color: #1a1a2e; }
+        .cat-btn[data-cat="all"].active   { color: #374151;          border-color: #9ca3af; }
+        .cat-btn[data-cat="math"].active  { color: var(--cat-math);  border-color: var(--cat-math); }
+        .cat-btn[data-cat="lang"].active  { color: var(--cat-lang);  border-color: var(--cat-lang); }
+        .cat-btn[data-cat="sci"].active   { color: var(--cat-sci);   border-color: var(--cat-sci); }
+        .cat-btn[data-cat="cs"].active    { color: var(--cat-cs);    border-color: var(--cat-cs); }
+        .cat-btn[data-cat="media"].active { color: var(--cat-media); border-color: var(--cat-media); }
+        .cat-btn[data-cat="biz"].active   { color: var(--cat-biz);   border-color: var(--cat-biz); }
+
+        /* ── SUBJECT GRID ── */
+        .subject-grid-wrapper {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 0 20px;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.35s ease, opacity 0.25s ease, margin 0.3s ease;
+        }
+        .subject-grid-wrapper.open { max-height: 600px; opacity: 1; margin-top: 28px; }
+        .subject-grid-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #9ca3af; margin-bottom: 12px; }
+        .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; padding-bottom: 4px; }
+
+        .subj-chip {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .subj-chip:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .subj-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+        .subj-chip .chip-code { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 500; color: #9ca3af; letter-spacing: 0.5px; display: block; }
+        .subj-chip .chip-name { font-size: 0.85rem; font-weight: 600; color: #1f2937; line-height: 1.35; margin-top: 1px; display: block; }
+        .subj-chip[data-cat="math"]  .chip-dot { background: var(--cat-math); }
+        .subj-chip[data-cat="lang"]  .chip-dot { background: var(--cat-lang); }
+        .subj-chip[data-cat="sci"]   .chip-dot { background: var(--cat-sci); }
+        .subj-chip[data-cat="cs"]    .chip-dot { background: var(--cat-cs); }
+        .subj-chip[data-cat="media"] .chip-dot { background: var(--cat-media); }
+        .subj-chip[data-cat="biz"]   .chip-dot { background: var(--cat-biz); }
+        .subj-chip[data-cat="math"]:hover  { border-color: var(--cat-math); }
+        .subj-chip[data-cat="lang"]:hover  { border-color: var(--cat-lang); }
+        .subj-chip[data-cat="sci"]:hover   { border-color: var(--cat-sci); }
+        .subj-chip[data-cat="cs"]:hover    { border-color: var(--cat-cs); }
+        .subj-chip[data-cat="media"]:hover { border-color: var(--cat-media); }
+        .subj-chip[data-cat="biz"]:hover   { border-color: var(--cat-biz); }
+
+        /* ── MAIN ── */
+        .main { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 5px; color: #1a1a2e; letter-spacing: -0.3px; }
+        .hint { font-size: 0.87rem; color: #9ca3af; margin-bottom: 18px; font-weight: 400; }
+
+        .search-row { display: flex; gap: 8px; margin-bottom: 26px; }
+        .search-row input {
+            flex: 1; padding: 11px 15px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.95rem; font-family: 'DM Mono', monospace; outline: none;
+            letter-spacing: 0.5px; background: #fff; transition: border-color 0.18s, box-shadow 0.18s;
+        }
+        .search-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,110,247,0.12); }
+        .search-row button {
+            padding: 11px 22px; background: var(--accent); color: #fff; border: none;
+            border-radius: 8px; font-size: 0.92rem; font-family: 'DM Sans', sans-serif;
+            font-weight: 600; cursor: pointer; transition: background 0.18s;
+        }
+        .search-row button:hover { background: var(--accent-dark); }
+
+        /* ── RESULT CARD ── */
+        .result-card {
+            background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px;
+            padding: 20px 24px; display: none; animation: fadeIn 0.2s ease;
+        }
+        .result-card.show { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card .badge {
+            display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+            padding: 3px 9px; border-radius: 20px; margin-bottom: 10px;
+        }
+        .result-card .code { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: #9ca3af; letter-spacing: 1px; margin-bottom: 5px; }
+        .result-card .subject-name { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+        .result-card .description { font-size: 0.88rem; color: #6b7280; line-height: 1.65; }
+
+        .badge-math  { background: #fef3c7; color: #d97706; }
+        .badge-lang  { background: #d1fae5; color: #059669; }
+        .badge-sci   { background: #ede9fe; color: #7c3aed; }
+        .badge-cs    { background: #dbeafe; color: #1d4ed8; }
+        .badge-media { background: #fce7f3; color: #be185d; }
+        .badge-biz   { background: #ffedd5; color: #c2410c; }
+        .badge-other { background: #f3f4f6; color: #374151; }
+
+        .not-found {
+            color: #ef4444; font-size: 0.88rem; display: none; padding: 14px 18px;
+            background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-weight: 500;
+        }
+        .not-found.show { display: block; }
+
+        /* ── UPLOAD SECTION ── */
+        .upload-section { display: none; margin-top: 18px; }
+        .upload-section.show { display: block; }
+        .upload-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 22px 24px; }
+        .upload-card h3 { font-size: 0.97rem; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+        .upload-fields { display: flex; flex-direction: column; gap: 11px; }
+        .field-group { display: flex; flex-direction: column; gap: 5px; }
+        .field-group label { font-size: 0.78rem; font-weight: 600; color: #374151; }
+        .field-group input, .field-group select {
+            padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.88rem; font-family: 'DM Sans', sans-serif; outline: none; background: #fafafa;
+        }
+        .field-group input:focus, .field-group select:focus { border-color: var(--accent); background: #fff; }
+        .btn-upload {
+            margin-top: 14px; width: 100%; padding: 11px; background: var(--accent); color: #fff;
+            border: none; border-radius: 8px; font-size: 0.92rem; font-family: 'DM Sans', sans-serif;
+            font-weight: 600; cursor: pointer; transition: background 0.18s;
+        }
+        .btn-upload:hover { background: var(--accent-dark); }
+        .btn-upload:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+        /* upload success toast */
+        .toast {
+            display: none; align-items: center; gap: 10px;
+            background: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 8px;
+            padding: 12px 16px; margin-top: 12px; font-size: 0.87rem;
+            font-weight: 600; color: #059669; animation: fadeIn 0.2s ease;
+        }
+        .toast.show { display: flex; }
+
+        /* ── PAPERS SECTION ── */
+        .papers-section { display: none; margin-top: 18px; }
+        .papers-section.show { display: block; }
+        .papers-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .papers-title { font-size: 0.85rem; font-weight: 700; color: #1a1a2e; }
+        .papers-filter {
+            padding: 6px 10px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none;
+        }
+        .paper-row {
+            background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px;
+            padding: 14px 18px; margin-bottom: 8px; display: flex;
+            align-items: center; justify-content: space-between;
+        }
+        .paper-info { font-size: 0.87rem; color: #374151; }
+        .paper-info span { font-weight: 600; color: #1a1a2e; }
+        .btn-view {
+            padding: 8px 16px; background: #10b981; color: #fff; border: none;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+            font-weight: 600; cursor: pointer; transition: background 0.18s;
+        }
+        .btn-view:hover { background: #059669; }
+
+        /* ── SOLUTIONS BOX ── */
+        .solutions-box { animation: fadeIn 0.2s ease; }
+
+        .sol-card {
+            background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px;
+            padding: 14px 18px; margin-bottom: 8px; font-size: 0.87rem;
+        }
+        .sol-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .sol-card-user { font-weight: 700; color: #1a1a2e; }
+        .sol-type-badge {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+            padding: 2px 8px; border-radius: 12px; background: #dbeafe; color: #1d4ed8;
+        }
+        .sol-filename { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: #6b7280; margin-bottom: 10px; }
+        .btn-download {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 16px; background: var(--accent); color: #fff; border: none;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+            font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.18s;
+        }
+        .btn-download:hover { background: var(--accent-dark); }
+
+        .no-solutions { font-size: 0.85rem; color: #9ca3af; padding: 10px 0; }
+
+        /* ── COMMENTS ── */
+        .comment-section { display: none; margin-top: 24px; }
+        .comment-section.show { display: block; }
+        .cm-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; margin-bottom: 8px; font-size: 0.87rem; }
+        .cm-name { font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+        .cm-text { color: #374151; line-height: 1.6; margin-bottom: 10px; }
+        .cm-votes { display: flex; gap: 8px; }
+        .cm-vote {
+            padding: 3px 12px; border: 1.5px solid #e5e7eb; border-radius: 20px;
+            background: none; font-family: 'DM Sans', sans-serif; font-size: 0.78rem;
+            font-weight: 600; cursor: pointer; color: #6b7280;
+        }
+        .cm-vote.yes { border-color: #6ee7b7; color: #059669; background: #ecfdf5; }
+        .cm-vote.no  { border-color: #fca5a5; color: #dc2626; background: #fef2f2; }
+        .cm-form { background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 14px 18px; margin-top: 8px; }
+        .cm-form input, .cm-form textarea {
+            width: 100%; padding: 8px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.87rem; outline: none;
+            box-sizing: border-box; margin-bottom: 8px;
+        }
+        .cm-form textarea { min-height: 68px; resize: none; }
+        .cm-form button {
+            padding: 8px 18px; background: var(--accent); color: #fff; border: none;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+            font-size: 0.87rem; cursor: pointer;
+        }
+
+        /* ── ADMIN VERIFY ── */
+        #adminVerifyBox {
+            display: none;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            z-index: 999; align-items: center; justify-content: center;
+        }
+        #adminVerifyBox.open { display: flex; }
+        .admin-verify-card {
+            background: #fff; border-radius: 14px; padding: 30px 32px;
+            width: 100%; max-width: 420px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        .admin-verify-card h2 { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 18px; }
+        .admin-verify-card input {
+            width: 100%; padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none;
+            margin-bottom: 10px; box-sizing: border-box;
+        }
+        .admin-verify-card input:focus { border-color: var(--accent); }
+        .admin-verify-actions { display: flex; gap: 8px; margin-top: 6px; }
+        .btn-verify {
+            flex: 1; padding: 10px; background: #1a1a2e; color: #fff; border: none;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+            font-size: 0.9rem; cursor: pointer;
+        }
+        .btn-cancel {
+            padding: 10px 18px; background: #f3f4f6; color: #374151; border: none;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+            font-size: 0.9rem; cursor: pointer;
+        }
+    </style>
+</head>
 <body>
 
-<div class="top-bar">
-    <span class="site-name">📚 Student Peer Support Platform</span>
-    <span class="user-info">Welcome, user-info</span>
+<!-- ── ADMIN VERIFY MODAL ── -->
+<div id="adminVerifyBox">
+    <div class="admin-verify-card">
+        <h2><i class="fa-solid fa-gauge-high" style="margin-right:8px;"></i>Admin Verification</h2>
+        <input id="adminLoginName" placeholder="Admin username or email" />
+        <input id="adminLoginPassword" type="password" placeholder="Password" />
+        <div class="admin-verify-actions">
+            <button class="btn-verify" onclick="verifyAdminIdentity()">Verify</button>
+            <button class="btn-cancel" onclick="closeAdminVerify()">Cancel</button>
+        </div>
+    </div>
 </div>
 
+<!-- ── TOP BAR ── -->
+<div class="top-bar">
+    <span class="site-name">📚 PaperSync <i class="fa-solid fa-people-group"></i></span>
+    <span class="user-info">
+        Welcome back
+        <button class="admin-btn" onclick="openAdminVerify()">
+            <i class="fa-solid fa-gauge-high"></i> Admin
+        </button>
+    </span>
+</div>
+
+<!-- ── CATEGORY NAV ── -->
 <nav class="cat-nav" id="catNav">
     <button class="cat-btn" data-cat="all">
-        <span class="cat-icon"><i class="fa-solid fa-border-all"></i></span>
-        All Subjects
+        <span class="cat-icon"><i class="fa-solid fa-border-all"></i></span>All Subjects
     </button>
     <button class="cat-btn" data-cat="math">
-        <span class="cat-icon"><i class="fa-solid fa-square-root-variable"></i></span>
-        Mathematics
+        <span class="cat-icon"><i class="fa-solid fa-square-root-variable"></i></span>Mathematics
     </button>
     <button class="cat-btn" data-cat="lang">
-        <span class="cat-icon"><i class="fa-solid fa-language"></i></span>
-        Languages
+        <span class="cat-icon"><i class="fa-solid fa-language"></i></span>Languages
     </button>
     <button class="cat-btn" data-cat="sci">
-        <span class="cat-icon"><i class="fa-solid fa-flask"></i></span>
-        Science
+        <span class="cat-icon"><i class="fa-solid fa-flask"></i></span>Science
     </button>
     <button class="cat-btn" data-cat="cs">
-        <span class="cat-icon"><i class="fa-solid fa-microchip"></i></span>
-        Computing
+        <span class="cat-icon"><i class="fa-solid fa-microchip"></i></span>Computing
     </button>
     <button class="cat-btn" data-cat="media">
-        <span class="cat-icon"><i class="fa-solid fa-photo-film"></i></span>
-        Multimedia
+        <span class="cat-icon"><i class="fa-solid fa-photo-film"></i></span>Multimedia
     </button>
     <button class="cat-btn" data-cat="biz">
-        <span class="cat-icon"><i class="fa-solid fa-briefcase"></i></span>
-        Business
+        <span class="cat-icon"><i class="fa-solid fa-briefcase"></i></span>Business
     </button>
 </nav>
 
+<!-- ── SUBJECT GRID ── -->
 <div class="subject-grid-wrapper" id="subjectGridWrapper">
     <div style="max-width:760px; margin:0 auto; padding:0 20px 28px;">
         <div class="subject-grid-label" id="gridLabel">All Subjects</div>
@@ -55,20 +407,22 @@
     </div>
 </div>
 
+<!-- ── MAIN CONTENT ── -->
 <div class="main">
     <h2>Find Your Subject</h2>
-    <p class="hint">Enter the subject code to search (eg. CMT1114), or browse by category above</p>
+    <p class="hint">Enter the subject code to search (e.g. CMT1114), or browse by category above</p>
 
     <div class="search-row">
         <input type="text" id="searchInput" placeholder="Enter subject code..." />
         <button onclick="search()">Search</button>
     </div>
 
+    <!-- Result Card -->
     <div class="result-card" id="resultCard">
-        <div class="badge" id="resultBadge"></div>       
-        <div class="code" id="resultCode"></div>          
-        <div class="subject-name" id="resultName"></div> 
-        <div class="description" id="resultDesc"></div> 
+        <div class="badge" id="resultBadge"></div>
+        <div class="code" id="resultCode"></div>
+        <div class="subject-name" id="resultName"></div>
+        <div class="description" id="resultDesc"></div>
     </div>
 
     <div class="not-found" id="notFound">
@@ -76,18 +430,30 @@
         Subject not found. Please check the code and try again.
     </div>
 
+    <!-- Papers / Solutions Section -->
+    <div class="papers-section" id="papersSection">
+        <div class="papers-header">
+            <div class="papers-title">Available Past Year Papers</div>
+            <select class="papers-filter" id="yearFilter" onchange="renderPapers()">
+                <option value="">All Years</option>
+            </select>
+        </div>
+        <div id="papersList"></div>
+    </div>
+
+    <!-- Upload Section -->
     <div class="upload-section" id="uploadSection">
         <div class="upload-card">
-            <h3> Upload Answer — <span id="uploadSubjectLabel"></span></h3>
+            <h3><i class="fa-solid fa-upload" style="margin-right:7px;opacity:0.7;"></i>Upload Answer — <span id="uploadSubjectLabel"></span></h3>
             <div class="upload-fields">
                 <div class="field-group">
                     <label>Your Name</label>
-                    <input type="text" id="uploaderName" />
+                    <input type="text" id="uploaderName" placeholder="e.g. ABC" />
                 </div>
                 <div class="field-group">
                     <label>Answer Type</label>
                     <select id="answerType">
-                        <option disabled selected>Select type…</option>
+                        <option value="" disabled selected>Select type…</option>
                         <option>Past Paper Answer</option>
                         <option>Tutorial Solution</option>
                         <option>Assignment Answer</option>
@@ -95,273 +461,433 @@
                     </select>
                 </div>
                 <div class="field-group">
+                    <label>Year & Trimester</label>
+                    <select id="answerYear">
+                        <option value="" disabled selected>Select year…</option>
+                    </select>
+                </div>
+                <div class="field-group">
                     <label>File</label>
-                    <input type="file" id="fileInput" />
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.zip" />
                 </div>
             </div>
-            <button class="btn-upload" onclick="submitUpload()">Submit Answer</button>
+            <button class="btn-upload" id="uploadBtn" onclick="submitUpload()">
+                <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Submit Answer
+            </button>
+            <!-- ✅ Success toast shown after upload -->
+            <div class="toast" id="uploadToast">
+                <i class="fa-solid fa-circle-check"></i>
+                <span id="uploadToastMsg">Uploaded successfully!</span>
+            </div>
         </div>
     </div>
 
-    <!-- COMMENT SECTION -->
+    <!-- Comments Section -->
     <div class="comment-section" id="commentSection">
-        <h3>Forum Discussion</h3>
-
-        <div class="comment-input">
-            <input type="text" id="commentInput" placeholder="Write a comment..." />
-            <button onclick="submitComment()">Post</button>
+        <div id="cmList"></div>
+        <div class="cm-form">
+            <input id="cmName" placeholder="Your name" />
+            <textarea id="cmText" placeholder="Ask a question or share tips…"></textarea>
+            <button onclick="postCm()">Post comment</button>
         </div>
-
-        <div id="commentList"></div>
     </div>
 </div>
 
 <script>
-
-/* ================= USER STATE (FIXED) ================= */
-let currentUser = "guest";
-
-function syncUser(){
-    fetch("/me", { credentials: "include" })
-    .then(r => r.json())
-    .then(data => {
-        const u = data.user?.username || data.user || "guest";
-        currentUser = u;
-        localStorage.setItem("currentUser", u);
-
-        const el = document.querySelector(".user-info");
-        if (el) el.textContent = "Welcome, " + u;
-    })
-    .catch(() => {
-        const saved = localStorage.getItem("currentUser");
-        if (saved) currentUser = saved;
-    });
-}
-
-syncUser();
-
-
-/* ================= SUBJECTS ================= */
+// ── STATE ──
 let subjects = {};
-let subjectsReady = false;   // ⭐关键修复
+let currentSubjectCode = '';
 
+// ── LOAD SUBJECTS ──
 fetch('/subjects')
-.then(res => res.json())
-.then(data => {
-    data.forEach(subj => {
-        subjects[subj.subject_code] = {
-            name: subj.name,
-            desc: subj.desc || "No description available.",
-            cat: subj.cat || "cs",
-            icon: subj.icon || "fa-book"
-        };
+    .then(res => res.json())
+    .then(data => {
+        data.forEach(subj => {
+            subjects[subj.subject_code] = {
+                name: subj.name,
+                desc: subj.desc  || "No description available.",
+                cat:  subj.cat   || "cs",
+                icon: subj.icon  || "fa-book"
+            };
+        });
     });
-    subjectsReady = true;   // ⭐关键
-});
-
 
 const catMeta = {
-    all:{label:"All Subjects",badgeClass:"badge-other",badgeText:"General",icon:"fa-border-all"},
-    math:{label:"Mathematics",badgeClass:"badge-math",badgeText:"Mathematics",icon:"fa-square-root-variable"},
-    lang:{label:"Languages",badgeClass:"badge-lang",badgeText:"Languages",icon:"fa-language"},
-    sci:{label:"Science",badgeClass:"badge-sci",badgeText:"Science",icon:"fa-flask"},
-    cs:{label:"Computing",badgeClass:"badge-cs",badgeText:"Computing",icon:"fa-microchip"},
-    media:{label:"Multimedia",badgeClass:"badge-media",badgeText:"Multimedia",icon:"fa-photo-film"},
-    biz:{label:"Business",badgeClass:"badge-biz",badgeText:"Business",icon:"fa-briefcase"}
+    all:   { label: "All Subjects", badgeClass: "badge-other", badgeText: "General",     icon: "fa-border-all" },
+    math:  { label: "Mathematics",  badgeClass: "badge-math",  badgeText: "Mathematics", icon: "fa-square-root-variable" },
+    lang:  { label: "Languages",    badgeClass: "badge-lang",  badgeText: "Languages",   icon: "fa-language" },
+    sci:   { label: "Science",      badgeClass: "badge-sci",   badgeText: "Science",     icon: "fa-flask" },
+    cs:    { label: "Computing",    badgeClass: "badge-cs",    badgeText: "Computing",   icon: "fa-microchip" },
+    media: { label: "Multimedia",   badgeClass: "badge-media", badgeText: "Multimedia",  icon: "fa-photo-film" },
+    biz:   { label: "Business",     badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" },
 };
 
-
-/* ================= NAV SAFE GUARD ================= */
-function ensureSubjectsReady(){
-    if(!subjectsReady){
-        alert("Data still loading, please wait...");
-        return false;
-    }
-    return true;
-}
-
-
-/* ================= NAVIGATION (UNCHANGED LOGIC) ================= */
+// ── CATEGORY NAV ──
 let currentCat = null;
-
-document.querySelectorAll('.cat-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-        if(!ensureSubjectsReady()) return;  // ⭐防止空数据
-
-        const cat=btn.dataset.cat;
-
-        if(currentCat===cat){
-            currentCat=null;
+document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const cat = btn.dataset.cat;
+        if (currentCat === cat) {
+            currentCat = null;
             btn.classList.remove('active');
             closeGrid();
             return;
         }
-
-        document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        currentCat=cat;
+        currentCat = cat;
         openGrid(cat);
     });
 });
 
-
-function openGrid(cat){
-    if(!ensureSubjectsReady()) return;   // ⭐防双保险
-
-    const grid=document.getElementById('subjectGrid');
-    const label=document.getElementById('gridLabel');
-    const wrapper=document.getElementById('subjectGridWrapper');
-
-    label.textContent=catMeta[cat]?.label||"Subjects";
-    grid.innerHTML="";
-
+function openGrid(cat) {
+    const grid    = document.getElementById('subjectGrid');
+    const label   = document.getElementById('gridLabel');
+    const wrapper = document.getElementById('subjectGridWrapper');
+    label.textContent = catMeta[cat]?.label || 'Subjects';
+    grid.innerHTML = '';
     Object.entries(subjects)
-    .filter(([c,s])=>cat==="all"||s.cat===cat)
-    .forEach(([code,s])=>{
-        const chip=document.createElement("div");
-        chip.className="subj-chip";
-
-        chip.innerHTML=`
-            <span class="chip-code">${code}</span>
-            <span class="chip-name">${s.name}</span>
-        `;
-
-        chip.onclick=()=>{
-            document.getElementById("searchInput").value=code;
-            search();
-        };
-
-        grid.appendChild(chip);
-    });
-
-    wrapper.classList.add("open");
+        .filter(([code, s]) => cat === 'all' || s.cat === cat)
+        .forEach(([code, s]) => {
+            const chip = document.createElement('div');
+            chip.className = 'subj-chip';
+            chip.dataset.cat = s.cat;
+            chip.innerHTML = `
+                <span class="chip-dot"></span>
+                <span class="chip-info">
+                    <span class="chip-code">${code}</span>
+                    <span class="chip-name">${s.name}</span>
+                </span>`;
+            chip.addEventListener('click', () => {
+                document.getElementById('searchInput').value = code;
+                search();
+                document.querySelector('.main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            grid.appendChild(chip);
+        });
+    wrapper.classList.add('open');
 }
 
-
-function closeGrid(){
-    document.getElementById("subjectGridWrapper").classList.remove("open");
+function closeGrid() {
+    document.getElementById('subjectGridWrapper').classList.remove('open');
 }
 
+// ── SEARCH ──
+function search() {
+    const input      = document.getElementById('searchInput').value.trim().toUpperCase();
+    const resultCard = document.getElementById('resultCard');
+    const notFound   = document.getElementById('notFound');
+    const uploadSec  = document.getElementById('uploadSection');
+    const commentSec = document.getElementById('commentSection');
 
-/* ================= SEARCH ================= */
-function search(){
-    const input=document.getElementById("searchInput").value.trim().toUpperCase();
+    resultCard.classList.remove('show');
+    notFound.classList.remove('show');
+    uploadSec.classList.remove('show');
+    commentSec.classList.remove('show');
+    document.getElementById('papersSection').classList.remove('show');
+    document.getElementById('uploadToast').classList.remove('show');
 
-    document.getElementById("resultCard").classList.remove("show");
-    document.getElementById("notFound").classList.remove("show");
-    document.getElementById("commentSection").classList.remove("show");
+    if (!input) return;
 
-    if(!input) return;
+    if (subjects[input]) {
+        currentSubjectCode = input;
+        const s    = subjects[input];
+        const meta = catMeta[s.cat] || catMeta['all'];
 
-    if(subjects[input]){
-        const s=subjects[input];
-        const meta=catMeta[s.cat];
+        document.getElementById('resultCode').textContent = input;
+        document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
+        document.getElementById('resultDesc').textContent = s.desc;
 
-        document.getElementById("resultCode").textContent=input;
-        document.getElementById("resultName").innerHTML=
-            `<i class="fa-solid ${s.icon}"></i> ${s.name}`;
-        document.getElementById("resultDesc").textContent=s.desc;
+        const badge = document.getElementById('resultBadge');
+        badge.className = `badge ${meta.badgeClass}`;
+        badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
 
-        const badge=document.getElementById("resultBadge");
-        badge.className=`badge ${meta.badgeClass}`;
-        badge.innerHTML=`<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
+        resultCard.classList.add('show');
 
-        document.getElementById("resultCard").classList.add("show");
+        document.getElementById('uploadSubjectLabel').textContent = input;
+        uploadSec.classList.add('show');
+        commentSec.classList.add('show');
 
-        const upload = document.getElementById("uploadSection");
-        if(upload) upload.classList.add("show");
-
+        loadPapers(input);
         loadComments(input);
     } else {
-        document.getElementById("notFound").classList.add("show");
+        notFound.classList.add('show');
     }
 }
 
+document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') search();
+});
 
-/* ================= COMMENTS ================= */
-function loadComments(code){
-fetch(`/comments?target_id=${code}`, {
-    credentials:"include"
-})
-.then(r=>r.json())
-.then(data=>{
-    const list=document.getElementById("commentList");
-    list.innerHTML="";
+// ── LOAD PAPERS ──
+function loadPapers(code) {
+    fetch('/subjects')
+        .then(r => r.json())
+        .then(data => {
+            const subj = data.find(s => s.subject_code === code);
+            if (!subj || !subj.papers || subj.papers.length === 0) {
+                document.getElementById('papersSection').classList.remove('show');
+                return;
+            }
 
-    if(!data?.length){
-        list.innerHTML="<p style='color:#999'>No discussion yet</p>";
+            const filter = document.getElementById('yearFilter');
+            const years  = [...new Set(subj.papers.map(p => p.year))].sort((a, b) => b - a);
+            filter.innerHTML = '<option value="">All Years</option>' +
+                years.map(y => `<option>${y}</option>`).join('');
+            filter._papers = subj.papers;
+
+            const yearSel = document.getElementById('answerYear');
+            yearSel.innerHTML = '<option value="" disabled selected>Select year…</option>' +
+                subj.papers.map(p => `<option value="${p.paper_id}">${p.year} - ${p.trimester}</option>`).join('');
+
+            document.getElementById('papersSection').classList.add('show');
+            renderPapers();
+        });
+}
+
+function renderPapers() {
+    const filter   = document.getElementById('yearFilter');
+    const papers   = filter._papers || [];
+    const yearVal  = filter.value;
+    const filtered = yearVal ? papers.filter(p => String(p.year) === yearVal) : papers;
+
+    document.getElementById('papersList').innerHTML = filtered.map(p => `
+        <div class="paper-row">
+            <div class="paper-info">
+                Year: <span>${p.year}</span> &nbsp;·&nbsp; Trimester: <span>${p.trimester}</span>
+            </div>
+            <button class="btn-view" onclick="toggleSolutions('${p.paper_id}')">
+                <i class="fa-solid fa-folder-open" style="margin-right:5px;"></i>Solutions & Discuss
+            </button>
+        </div>
+        <div class="solutions-box" id="sol-${p.paper_id}" style="display:none;"></div>
+    `).join('');
+}
+
+// ── TOGGLE SOLUTIONS PANEL ──
+function toggleSolutions(paperId) {
+    const box = document.getElementById('sol-' + paperId);
+    if (box.style.display === 'block') {
+        box.style.display = 'none';
         return;
     }
-
-    data.sort((a,b)=>(b.votes||0)-(a.votes||0));
-
-    data.forEach(c=>{
-        const up = c.voters ? Object.values(c.voters).filter(v=>v==="upvote").length : 0;
-        const down = c.voters ? Object.values(c.voters).filter(v=>v==="downvote").length : 0;
-
-        const div=document.createElement("div");
-        div.className="comment-card";
-
-        div.innerHTML=`
-            <b>${c.user || "guest"}</b>
-            <div style="margin:6px 0">${c.text}</div>
-
-            <div style="display:flex; gap:14px; align-items:center;">
-                <button onclick="vote('${c.id}','upvote')">👍 ${up}</button>
-                <button onclick="vote('${c.id}','downvote')">👎 ${down}</button>
-                <span style="margin-left:auto;">score: ${c.votes||0}</span>
-            </div>
-        `;
-
-        list.appendChild(div);
-    });
-
-    document.getElementById("commentSection").classList.add("show");
-});
+    box.style.display = 'block';
+    loadSolutionsFor(paperId);
 }
 
+// ── LOAD SOLUTIONS — backend filters by both subject AND paper_id ──
+function loadSolutionsFor(paperId) {
+    const box = document.getElementById('sol-' + paperId);
 
-/* ================= VOTE ================= */
-function vote(id, action){
-fetch("/vote", {
-    method:"POST",
-    credentials:"include",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-        id,
-        action,
-        user: currentUser
+    // ✅ Pass paper_id to backend so only this trimester's solutions come back
+    fetch(`/solutions?subject=${currentSubjectCode}&paper_id=${paperId}`)
+        .then(r => r.json())
+        .then(sols => {
+            const solCards = sols.length > 0
+                ? sols.map(s => `
+                    <div class="sol-card">
+                        <div class="sol-card-header">
+                            <span class="sol-card-user">
+                                <i class="fa-solid fa-user" style="margin-right:5px;opacity:0.6;"></i>${s.user || 'Anonymous'}
+                            </span>
+                            <span class="sol-type-badge">${s.type || 'Solution'}</span>
+                        </div>
+                        <div class="sol-filename">
+                            <i class="fa-solid fa-file" style="margin-right:5px;"></i>${s.filename}
+                        </div>
+                        <a class="btn-download" href="/download/${s.id}" target="_blank">
+                            <i class="fa-solid fa-download"></i> Download
+                        </a>
+                    </div>`).join('')
+                : '<div class="no-solutions">No solutions uploaded yet. Be the first to share!</div>';
+
+            box.innerHTML = `
+                <div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;padding:16px 18px;margin-top:-8px;margin-bottom:8px;">
+                    <div style="font-size:0.75rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">
+                        <i class="fa-solid fa-file-arrow-down" style="margin-right:6px;"></i>Uploaded Solutions
+                    </div>
+                    <div id="solCards-${paperId}">${solCards}</div>
+
+                    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #e5e7eb;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">
+                            <i class="fa-solid fa-comments" style="margin-right:6px;"></i>Discussion
+                        </div>
+                        <div id="solDiscuss-${paperId}"></div>
+                        <div class="cm-form" style="margin-top:8px;">
+                            <input id="solName-${paperId}" placeholder="Your name" />
+                            <textarea id="solText-${paperId}" placeholder="Share your solution or ask a question…"></textarea>
+                            <button onclick="postSolution('${paperId}')">Post</button>
+                        </div>
+                    </div>
+                </div>`;
+
+            loadDiscussion(paperId);
+        });
+}
+
+function loadDiscussion(paperId) {
+    fetch('/comments')
+        .then(r => r.json())
+        .then(all => {
+            const msgs = all.filter(c => c.paper === paperId || c.paper === String(paperId));
+            const el   = document.getElementById('solDiscuss-' + paperId);
+            if (!el) return;
+            el.innerHTML = msgs.length
+                ? msgs.map(c => `
+                    <div class="cm-card">
+                        <div class="cm-name">${c.user}</div>
+                        <div class="cm-text">${c.text}</div>
+                    </div>`).join('')
+                : '<div class="no-solutions" style="margin-bottom:8px;">No discussion yet.</div>';
+        });
+}
+
+function postSolution(paperId) {
+    const name = document.getElementById('solName-' + paperId).value.trim();
+    const text = document.getElementById('solText-' + paperId).value.trim();
+    if (!name || !text) { alert('Please fill in all fields.'); return; }
+    fetch('/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: name, paper: paperId, text })
+    }).then(() => {
+        document.getElementById('solName-' + paperId).value = '';
+        document.getElementById('solText-' + paperId).value = '';
+        loadDiscussion(paperId);
+    });
+}
+
+// ── SUBMIT UPLOAD ──
+async function submitUpload() {
+    const name    = document.getElementById('uploaderName').value.trim();
+    const type    = document.getElementById('answerType').value;
+    const yearSel = document.getElementById('answerYear');
+    const paperId = yearSel.value;
+    const fileEl  = document.getElementById('fileInput');
+    const file    = fileEl.files[0];
+    const toast   = document.getElementById('uploadToast');
+    const btn     = document.getElementById('uploadBtn');
+
+    toast.classList.remove('show');
+
+    if (!name)    { alert('Please enter your name.');       return; }
+    if (!type)    { alert('Please select an answer type.'); return; }
+    if (!paperId) { alert('Please select a year.');         return; }
+    if (!file)    { alert('Please select a file.');         return; }
+
+    const formData = new FormData();
+    formData.append('user',     name);
+    formData.append('subject',  currentSubjectCode);
+    formData.append('type',     type);
+    formData.append('paper_id', paperId);   // ✅ send paper_id to backend
+    formData.append('file',     file);
+
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i>Uploading…';
+
+    try {
+        const res  = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.success) {
+            document.getElementById('uploadToastMsg').textContent =
+                `"${file.name}" uploaded successfully! Thank you, ${name}.`;
+            toast.classList.add('show');
+
+            // Reset form
+            document.getElementById('uploaderName').value = '';
+            document.getElementById('answerType').value   = '';
+            document.getElementById('answerYear').value   = '';
+            fileEl.value = '';
+
+            // ✅ Refresh only the matching open solutions panel
+            const box = document.getElementById('sol-' + paperId);
+            if (box && box.style.display === 'block') {
+                loadSolutionsFor(paperId);
+            }
+
+        } else {
+            alert(data.message || 'Upload failed. Please try again.');
+        }
+    } catch (err) {
+        alert('Network error. Please check your connection.');
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Submit Answer';
+    }
+}
+
+// ── COMMENTS (subject-level) ──
+function loadComments(code) {
+    fetch('/comments')
+        .then(r => r.json())
+        .then(all => {
+            const cms = all.filter(c => c.paper === code);
+            document.getElementById('cmList').innerHTML = cms.map(c => `
+                <div class="cm-card">
+                    <div class="cm-name">${c.user}</div>
+                    <div class="cm-text">${c.text}</div>
+                    <div class="cm-votes">
+                        <button class="cm-vote" onclick="voteCm('${c.id}','upvote',this)">👍 ${c.votes > 0 ? c.votes : 0}</button>
+                        <button class="cm-vote" onclick="voteCm('${c.id}','downvote',this)">👎 ${c.votes < 0 ? Math.abs(c.votes) : 0}</button>
+                    </div>
+                </div>`).join('');
+        });
+}
+
+function voteCm(id, action, btn) {
+    const name = document.getElementById('cmName').value.trim() || 'anonymous';
+    fetch('/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action, user: name })
+    }).then(() => loadComments(currentSubjectCode));
+}
+
+function postCm() {
+    const name = document.getElementById('cmName').value.trim();
+    const text = document.getElementById('cmText').value.trim();
+    if (!name || !text) { alert('Please fill in all fields.'); return; }
+    fetch('/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: name, paper: currentSubjectCode, text })
+    }).then(() => {
+        document.getElementById('cmName').value = '';
+        document.getElementById('cmText').value = '';
+        loadComments(currentSubjectCode);
+    });
+}
+
+// ── ADMIN ──
+function openAdminVerify() {
+    document.getElementById('adminVerifyBox').classList.add('open');
+}
+function closeAdminVerify() {
+    document.getElementById('adminVerifyBox').classList.remove('open');
+}
+document.getElementById('adminVerifyBox').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminVerify();
+});
+
+function verifyAdminIdentity() {
+    const username = document.getElementById('adminLoginName').value.trim();
+    const password = document.getElementById('adminLoginPassword').value;
+    if (!username || !password) {
+        alert('Please enter admin username/email and password.');
+        return;
+    }
+    fetch('/admin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
     })
-}).then(()=>{
-    const code=document.getElementById("searchInput").value.trim().toUpperCase();
-    loadComments(code);
-});
-}
-
-
-/* ================= COMMENT ================= */
-function submitComment(){
-    const text=document.getElementById("commentInput").value.trim();
-    const code=document.getElementById("searchInput").value.trim().toUpperCase();
-
-    if(!text||!code) return;
-
-    fetch("/comment", {
-        method:"POST",
-        credentials:"include",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-            user: currentUser,
-            target_id:code,
-            text:text
-        })
-    }).then(()=>{
-        document.getElementById("commentInput").value="";
-        loadComments(code);
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) { alert(data.message); return; }
+        window.location.href = '/admin-dashboard';
     });
 }
-
 </script>
-
 </body>
 </html>
