@@ -77,5 +77,14 @@
             "anonymous": "upvote"
         },
         "replies": []
+    },
+    {
+        "id": "9",
+        "user": "1",
+        "paper": "p1",
+        "text": "123",
+        "votes": 0,
+        "voters": {},
+        "replies": []
     }
 ]

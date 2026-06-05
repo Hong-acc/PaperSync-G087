@@ -285,6 +285,22 @@ def get_comments_by_target(target_type, target_id):
     comments = read_json('comments.json')
     return [c for c in comments if c['target_type'] == target_type and c['target_id'] == target_id]
 
+# -----ADMIN DASHBOARD-----
+def get_admin_stats():
+    users = read_json('users.json')
+    subjects = read_json('subjects.json')
+    comments = read_json('comments.json')
+    solutions = read_json('solutions.json')
+
+    return {
+        "users": len(users),
+        "subjects": len(subjects),
+        "papers": sum(len(s.get("papers", [])) for s in subjects),
+        "comments": len(comments),
+        "solutions": len(solutions),
+        "banned_users": len([u for u in users if u.get("banned")])
+    }
+
 if __name__ == '__main__':
     init_db()
     print("Database initialized successfully.")

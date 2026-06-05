@@ -1,10 +1,20 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect, session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import db
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = "papersync-admin-key"
 CORS(app)
+
+def require_admin(route_func):
+    @wraps(route_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("admin_verified"):
+            return jsonify({"message": "Admin verification required"}), 401
+        return route_func(*args, **kwargs)
+    return wrapper
 
 # ================= FRONTEND =================
 @app.route('/')
@@ -190,7 +200,58 @@ def get_comments():
 
     return jsonify(comments)
 
-# ================= RUN =================
+# ================= ADMIN VERIFY =================
+@app.route('/admin/verify', methods=['POST'])
+def admin_verify():
+    data = request.get_json()
+
+    login_input = data.get("username", "").strip()
+    password = data.get("password", "")
+
+    user = db.get_user_by_username(login_input)
+    if not user:
+        user = db.get_user_by_email(login_input)
+
+    if not user:
+        return jsonify({
+            "success": False,
+            "message": "Account not found"
+        }), 403
+
+    email = user.get("user_email", "").lower()
+
+    if user.get("role") != "admin" or not email.endswith("@mmu.edu.my") or email.endswith("@student.mmu.edu.my"):
+        return jsonify({
+            "success": False,
+            "message": "Only admin email can access admin dashboard"
+        }), 403
+
+    if not check_password_hash(user["password_hash"], password):
+        return jsonify({
+            "success": False,
+            "message": "Wrong password"
+        }), 403
+
+    session["admin_verified"] = True
+    session["admin_user_id"] = user.get("user_id")
+
+    return jsonify({
+        "success": True,
+        "message": "Admin verified"
+    })
+
+@app.route('/admin-dashboard')
+@require_admin
+def admin_dashboard():
+    with open("admin.html", "r", encoding="utf-8") as f:
+        return f.read()
+    
+@app.route('/admin/stats')
+@require_admin
+def admin_stats():
+    return jsonify(db.get_admin_stats())    
+    
+    # ================= RUN =================
 if __name__ == "__main__":
     db.init_db()
     app.run(debug=True)
