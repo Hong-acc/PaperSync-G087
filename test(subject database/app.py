@@ -19,7 +19,8 @@ def require_admin(route_func):
 # ================= FRONTEND =================
 @app.route('/')
 def home():
-    return redirect('/frontend')
+    with open("login.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.route('/frontend')
 def frontend():
@@ -249,7 +250,20 @@ def admin_dashboard():
 @app.route('/admin/stats')
 @require_admin
 def admin_stats():
-    return jsonify(db.get_admin_stats())    
+    users = db.read_json("users.json")
+    subjects = db.read_json("subjects.json")
+    comments = db.read_json("comments.json")
+    solutions = db.read_json("solutions.json")
+
+    return jsonify({
+        "users": len(users),
+        "subjects": len(subjects),
+        "papers": sum(len(s.get("papers", [])) for s in subjects),
+        "comments": len(comments),
+        "solutions": len(solutions),
+        "banned_users": 0
+    })
+   
     
     # ================= RUN =================
 if __name__ == "__main__":
