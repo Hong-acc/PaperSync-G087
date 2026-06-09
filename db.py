@@ -231,6 +231,28 @@ def add_paper_to_subject(subject_id, year, trimester):
             return new_paper
     return None
 
+def search_papers(year=None, trimester=None):
+    """Filter past year papers by year and trimester across all subjects."""
+    subjects = read_json('subjects.json')
+    results = []
+    
+    for subject in subjects:
+        for paper in subject.get('papers', []):
+            match = True
+            if year and str(paper.get('year')) != str(year):
+                match = False
+            if trimester and str(paper.get('trimester')).lower() != str(trimester).lower():
+                match = False
+                
+            if match:
+                # Attach subject info to the paper result for context
+                paper_copy = paper.copy()
+                paper_copy['subject_name'] = subject.get('name')
+                paper_copy['subject_code'] = subject.get('subject_code')
+                results.append(paper_copy)
+                
+    return results
+
 # ------------------------------------------
 # SOLUTIONS & FILE UPLOADS
 # ------------------------------------------
