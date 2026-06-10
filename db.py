@@ -114,7 +114,9 @@ def init_db():
                 "target_id": "p1",
                 "user_id": "2",
                 "username": "student",
-                "text": "Does anyone know how to solve Question 3b?"
+                "text": "Does anyone know how to solve Question 3b?",
+                "flags": 0,
+                "flagged_by": []
             }
         ]
         write_json('comments.json', comments)
@@ -339,11 +341,33 @@ def add_comment(target_type, target_id, user_id, username, text):
         "target_id": target_id,
         "user_id": user_id,
         "username": username,
-        "text": text
+        "text": text,
+        "flags": 0,
+        "flagged_by": []
     }
     comments.append(new_comment)
     write_json('comments.json', comments)
     return new_comment
+
+def update_comment_flags(comment_id, user_id):
+    """Toggle the flags for a comment by a user."""
+    comments = read_json('comments.json')
+    for c in comments:
+        if c.get('comment_id') == comment_id:
+            flagged_by = c.get('flagged_by', [])
+            if user_id in flagged_by:
+                # Remove flag
+                flagged_by.remove(user_id)
+                c['flags'] = max(0, c.get('flags', 1) - 1)
+            else:
+                # Add flag
+                flagged_by.append(user_id)
+                c['flags'] = c.get('flags', 0) + 1
+            c['flagged_by'] = flagged_by
+            write_json('comments.json', comments)
+            return c
+    return None
+
 
 def get_comments_by_target(target_type, target_id):
     """Retrieve all comments for a specific target (paper or solution)."""
