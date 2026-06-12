@@ -377,6 +377,15 @@ def get_comments_by_target(target_type, target_id):
 # ------------------------------------------
 # ADMINISTRATIVE OPERATIONS
 # ------------------------------------------
+def get_flagged_solutions():
+    """Retrieve all solutions that have been flagged by at least one user."""
+    solutions = read_json('solutions.json')
+    return [s for s in solutions if s.get('flags', 0) > 0]
+
+def get_flagged_comments():
+    """Retrieve all comments that have been flagged by at least one user."""
+    comments = read_json('comments.json')
+    return [c for c in comments if c.get('flags', 0) > 0]
 
 def update_user_status(user_id, status):
     """Update a user's status (e.g., 'active' or 'banned')."""
