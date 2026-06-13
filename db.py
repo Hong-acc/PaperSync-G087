@@ -259,7 +259,7 @@ def search_papers(year=None, trimester=None):
 # SOLUTIONS & FILE UPLOADS
 # ------------------------------------------
 
-def add_solution(paper_id, uploader_id, uploader_username, filepath):
+def add_solution(paper_id, uploader_id, uploader_username, filepath, original_filename=None):
     """Add a new solution entry to solutions.json."""
     solutions = read_json('solutions.json')
     new_solution = {
@@ -268,6 +268,7 @@ def add_solution(paper_id, uploader_id, uploader_username, filepath):
         "uploader_id": uploader_id,
         "uploader_username": uploader_username,
         "filepath": filepath,
+        "original_filename": original_filename,
         "upvotes": 0,
         "flags": 0,
         "upvoted_by": [],
