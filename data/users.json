@@ -74,6 +74,14 @@
         "username": "op",
         "user_email": "sh@gmail.com",
         "password_hash": "scrypt:32768:8:1$g7yuUTWKMWBtkr6Z$cce548c4022832279186a0aea3c39fa2d29b527b7bad992980e07d34a35320d3f3c1f1fc448217d94881683e5e1238d2f6c10b86ff7a0f69cfe12bd0c731d861",
+        "role": "student",
+        "status": "active"
+    },
+    {
+        "user_id": "35c73431-8356-43a8-96ed-bb50656ce768",
+        "username": "yh",
+        "user_email": "yuwhongl@gmail.com",
+        "password_hash": "scrypt:32768:8:1$rfEhfL5ch251OrqY$77a5237e668d0f7a9958b1c260044a709ed6e719e912ad1fdab2ea42dd2995c94ae926b87c578b1948b675d8b1cdb21cf5bd64e9dc38c8e55438423395dd26fa",
         "role": "student"
     }
 ]
