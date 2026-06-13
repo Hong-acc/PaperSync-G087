@@ -672,31 +672,46 @@ function renderPapers() {
 
 function loadSolutions(paperId) {
   const box = document.getElementById('sol-' + paperId);
-  fetch('/comments')
-    .then(r => r.json())
-    .then(all => {
-      const sols = all.filter(c => c.paper === paperId || c.target_id === paperId);
-      box.innerHTML = `
-        <div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:0 0 10px 10px;padding:14px 18px;margin-top:-8px;margin-bottom:8px;">
-          <div style="font-size:0.78rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Solutions & Discussion</div>
-          <div id="solList-${paperId}">
-            ${sols.length ? sols.map(c => `
-              <div class="cm-card">
-                <div class="cm-name">${c.user || c.username || 'Anonymous'}</div>
-                <div class="cm-text">${c.text}</div>
-                <div class="cm-votes">
-                  <button class="cm-vote" onclick="voteSol('${c.id}','upvote','${paperId}')">👍 ${c.votes > 0 ? c.votes : 0}</button>
-                  <button class="cm-vote" onclick="voteSol('${c.id}','downvote','${paperId}')">👎 ${c.votes < 0 ? Math.abs(c.votes) : 0}</button>
-                </div>
-              </div>`).join('') : '<div style="font-size:0.85rem;color:#9ca3af;margin-bottom:10px;">No solutions yet. Be the first!</div>'}
-          </div>
-          <div class="cm-form" style="margin-top:10px;">
-            <input id="solName-${paperId}" placeholder="Your name" />
-            <textarea id="solText-${paperId}" placeholder="Share your solution or comment…"></textarea>
-            <button onclick="postSolution('${paperId}')">Post</button>
-          </div>
-        </div>`;
-    });
+
+  Promise.all([
+    fetch('/solutions?paper_id=' + paperId).then(r => r.json()),
+    fetch('/comments').then(r => r.json())
+  ]).then(([solutions, allComments]) => {
+    const comments = allComments.filter(c => c.paper === paperId || c.target_id === paperId);
+
+    const solsHtml = solutions.length ? solutions.map(s => `
+      <div class="cm-card" style="border-left:3px solid #10b981;">
+        <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· Solution file</span></div>
+        <div class="cm-text" style="font-family:'DM Mono',monospace;font-size:0.82rem;">${s.filepath}</div>
+        <div class="cm-votes">
+          <button class="cm-vote" onclick="flagSolution('${s.solution_id}', '${paperId}')">🚩 Flag (${s.flags || 0})</button>
+        </div>
+      </div>`).join('') : '';
+
+    const cmtsHtml = comments.length ? comments.map(c => `
+      <div class="cm-card">
+        <div class="cm-name">${c.user || c.username || 'Anonymous'}</div>
+        <div class="cm-text">${c.text}</div>
+        <div class="cm-votes">
+          <button class="cm-vote" onclick="voteSol('${c.id || c.comment_id}','upvote','${paperId}')">👍 ${c.votes > 0 ? c.votes : 0}</button>
+          <button class="cm-vote" onclick="voteSol('${c.id || c.comment_id}','downvote','${paperId}')">👎 ${c.votes < 0 ? Math.abs(c.votes) : 0}</button>
+          <button class="cm-vote" onclick="flagComment('${c.id || c.comment_id}','${paperId}')">🚩 Flag</button>
+        </div>
+      </div>`).join('') : '<div style="font-size:0.85rem;color:#9ca3af;margin-bottom:10px;">No comments yet. Be the first!</div>';
+
+    box.innerHTML = `
+      <div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:0 0 10px 10px;padding:14px 18px;margin-top:-8px;margin-bottom:8px;">
+        <div style="font-size:0.78rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Solutions</div>
+        ${solsHtml || '<div style="font-size:0.85rem;color:#9ca3af;margin-bottom:10px;">No uploaded solutions yet.</div>'}
+        <div style="font-size:0.78rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px;">Discussion</div>
+        <div id="solList-${paperId}">${cmtsHtml}</div>
+        <div class="cm-form" style="margin-top:10px;">
+          <input id="solName-${paperId}" placeholder="Your name" />
+          <textarea id="solText-${paperId}" placeholder="Share your solution or comment…"></textarea>
+          <button onclick="postSolution('${paperId}')">Post</button>
+        </div>
+      </div>`;
+  });
 }
 
 function voteSol(id, action, paperId) {
@@ -718,6 +733,47 @@ function postSolution(paperId) {
     body: JSON.stringify({ user: name, paper: paperId, text })
   }).then(() => loadSolutions(paperId));
 }
+
+function flagSolution(solutionId, paperId) {
+  const name = document.getElementById('solName-' + paperId)?.value.trim();
+  if (!name) { alert('Please enter your name first.'); return; }
+  fetch('/flag/solution', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ solution_id: solutionId, user: name })
+  }).then(r => r.json()).then(data => {
+    if (data.success) { alert('Solution flagged for review.'); loadSolutions(paperId); }
+    else alert(data.message);
+  });
+}
+
+function flagComment(commentId, paperId) {
+  const name = document.getElementById('solName-' + paperId)?.value.trim();
+  if (!name) { alert('Please enter your name first.'); return; }
+  fetch('/flag/comment', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ comment_id: commentId, user: name })
+  }).then(r => r.json()).then(data => {
+    if (data.success) alert('Comment flagged for review.');
+    else alert(data.message);
+  });
+}
+
+function flagComment(commentId, paperId) {
+    const name = document.getElementById('solName-' + paperId)?.value.trim();
+    if (!name) { alert('Please enter your name first.'); return; }
+    fetch('/flag/comment', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ comment_id: commentId, user: name })
+    }).then(r => r.json()).then(data => {
+        if (data.success) alert('Comment flagged for review.');
+        else alert(data.message);
+    });
+}
+
+
 function openAdminVerify() {
     document.getElementById("adminVerifyBox").style.display = "block";
 }

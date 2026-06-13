@@ -70,7 +70,6 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-
     login_input = data.get("username", "")
     password = data.get("password", "")
 
@@ -79,13 +78,13 @@ def login():
         user = db.get_user_by_email(login_input)
 
     if user and check_password_hash(user["password_hash"], password):
+        if user.get("status") == "banned":
+            return jsonify({"message": "Your account has been banned.", "success": False}), 403
+
         return jsonify({
             "message": "Login success",
             "success": True,
-            "user": {
-                "user_id": user["user_id"],
-                "username": user["username"]
-            }
+            "user": {"user_id": user["user_id"], "username": user["username"]}
         })
 
     return jsonify({"message": "Invalid login", "success": False})
@@ -261,9 +260,133 @@ def admin_stats():
         "papers": sum(len(s.get("papers", [])) for s in subjects),
         "comments": len(comments),
         "solutions": len(solutions),
-        "banned_users": 0
+        "banned_users": sum(1 for u in users if u.get("status") == "banned")
     })
    
+@app.route('/admin/flagged/solutions')
+@require_admin
+def admin_flagged_solutions():
+    solutions = db.read_json("solutions.json")
+    flagged = [s for s in solutions if s.get("flags", 0) > 0]
+    return jsonify(flagged)
+
+@app.route('/admin/flagged/comments')
+@require_admin
+def admin_flagged_comments():
+    comments = db.read_json("comments.json")
+    flagged = [c for c in comments if c.get("flags", 0) > 0]
+    return jsonify(flagged)
+
+@app.route('/admin/flag/dismiss', methods=['POST'])
+@require_admin
+def admin_flag_dismiss():
+    data = request.get_json()
+    content_type = data.get("type")
+    content_id = str(data.get("id"))
+
+    if content_type == "solution":
+        solutions = db.read_json("solutions.json")
+        for s in solutions:
+            if str(s.get("solution_id")) == content_id:
+                s["flags"] = 0
+                s["flagged_by"] = []
+        db.write_json("solutions.json", solutions)
+
+    elif content_type == "comment":
+        comments = db.read_json("comments.json")
+        for c in comments:
+            if str(c.get("comment_id", c.get("id", ""))) == content_id:
+                c["flags"] = 0
+        db.write_json("comments.json", comments)
+
+    return jsonify({"success": True})
+
+@app.route('/admin/solution/delete', methods=['POST'])
+@require_admin
+def admin_delete_solution():
+    data = request.get_json()
+    result = db.delete_solution(str(data.get("id")), role="admin")
+    return jsonify({"success": bool(result)})
+
+@app.route('/admin/comment/delete', methods=['POST'])
+@require_admin
+def admin_delete_comment():
+    data = request.get_json()
+    result = db.delete_comment(str(data.get("id")), role="admin")
+    return jsonify({"success": bool(result)})
+
+@app.route('/flag/comment', methods=['POST'])
+def flag_comment():
+    data = request.get_json()
+    user = data.get("user", "")
+    if not user or user in ["undefined", "null"]:
+        return jsonify({"message": "Not logged in"}), 401
+
+    comment_id = str(data.get("comment_id"))
+    comments = db.read_json("comments.json")
+    for c in comments:
+        if str(c.get("comment_id", c.get("id"))) == comment_id:
+            c.setdefault("flags", 0)
+            c["flags"] += 1
+            db.write_json("comments.json", comments)
+            return jsonify({"success": True})
+
+    return jsonify({"message": "Not found"}), 404
+
+@app.route('/solutions')
+def get_solutions():
+    paper_id = request.args.get("paper_id")
+    solutions = db.read_json("solutions.json")
+    if paper_id:
+        solutions = [s for s in solutions if s.get("paper_id") == paper_id]
+    return jsonify(solutions)
+
+@app.route('/flag/solution', methods=['POST'])
+def flag_solution():
+    data = request.get_json()
+    user = data.get("user", "")
+    if not user or user in ["undefined", "null"]:
+        return jsonify({"message": "Not logged in"}), 401
+    result = db.update_solution_flags(str(data.get("solution_id")), user)
+    if result:
+        return jsonify({"success": True, "flags": result["flags"]})
+    return jsonify({"message": "Not found"}), 404 
+
+@app.route('/admin/users')
+@require_admin
+def admin_users():
+    users = db.read_json("users.json")
+    safe_users = [{
+        "user_id": u.get("user_id"),
+        "username": u.get("username"),
+        "user_email": u.get("user_email"),
+        "role": u.get("role"),
+        "status": u.get("status", "active")
+    } for u in users]
+    return jsonify(safe_users)
+
+@app.route('/admin/user/ban', methods=['POST'])
+@require_admin
+def admin_ban_user():
+    data = request.get_json()
+    user_id = str(data.get("user_id"))
+
+    user = db.get_user_by_id(user_id)
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+    if user.get("role") == "admin":
+        return jsonify({"success": False, "message": "Cannot ban admin"}), 403
+
+    db.update_user_status(user_id, "banned")
+    return jsonify({"success": True})
+
+@app.route('/admin/user/unban', methods=['POST'])
+@require_admin
+def admin_unban_user():
+    data = request.get_json()
+    user_id = str(data.get("user_id"))
+    db.update_user_status(user_id, "active")
+    return jsonify({"success": True})       
     
     # ================= RUN =================
 if __name__ == "__main__":
