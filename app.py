@@ -1,10 +1,6 @@
-import os
-import uuid
-from flask import Flask, request, jsonify, redirect, session, send_from_directory
+from flask import Flask, request, jsonify, redirect, session, send_file
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import db
 from functools import wraps
 
@@ -12,18 +8,7 @@ app = Flask(__name__)
 app.secret_key = "papersync-admin-key"
 CORS(app)
 
-reset_serializer = URLSafeTimedSerializer(app.secret_key, salt="password-reset")
-RESET_TOKEN_MAX_AGE = 3600  # 1 hour
-
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'uploads')
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'zip', 'py'}
-
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
+# ================= ADMIN CHECK =================
 def require_admin(route_func):
     @wraps(route_func)
     def wrapper(*args, **kwargs):
@@ -35,13 +20,11 @@ def require_admin(route_func):
 # ================= FRONTEND =================
 @app.route('/')
 def home():
-    with open("login.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return redirect('/frontend')
 
 @app.route('/frontend')
 def frontend():
-    with open("home.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return send_file("frontend/home.html")
 
 # ================= SUBJECTS =================
 @app.route('/subjects')
@@ -69,7 +52,7 @@ def signup():
     data = request.get_json()
 
     username = data.get("username", "").strip()
-    email = data.get("email", "").strip()
+    email    = data.get("email", "").strip()
     password = data.get("password", "").strip()
 
     if not username or not email or not password:
@@ -86,79 +69,25 @@ def signup():
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+
     login_input = data.get("username", "")
-    password = data.get("password", "")
+    password    = data.get("password", "")
 
     user = db.get_user_by_username(login_input)
     if not user:
         user = db.get_user_by_email(login_input)
 
     if user and check_password_hash(user["password_hash"], password):
-        if user.get("status") == "banned":
-            return jsonify({"message": "Your account has been banned.", "success": False}), 403
-
         return jsonify({
             "message": "Login success",
             "success": True,
-            "user": {"user_id": user["user_id"], "username": user["username"]}
+            "user": {
+                "user_id":  user["user_id"],
+                "username": user["username"]
+            }
         })
 
     return jsonify({"message": "Invalid login", "success": False})
-
-# ================= FORGOT PASSWORD =================
-@app.route('/forgot-password', methods=['POST'])
-def forgot_password():
-    data = request.get_json()
-    email = data.get("email", "").strip()
-
-    if not email:
-        return jsonify({"success": False, "message": "Email is required"}), 400
-
-    user = db.get_user_by_email(email)
-
-    # Always respond success-like message to avoid leaking which emails are registered.
-    if user:
-        token = reset_serializer.dumps({"user_id": user["user_id"], "email": email})
-        reset_link = f"{request.host_url.rstrip('/')}/reset-password?token={token}"
-        # Simulate sending an email by logging the link to the server console.
-        print(f"[PaperSync] Password reset link for {email}: {reset_link}")
-
-    return jsonify({
-        "success": True,
-        "message": "If an account with that email exists, a password reset link has been sent."
-    })
-
-# ================= RESET PASSWORD =================
-@app.route('/reset-password', methods=['GET'])
-def reset_password_page():
-    with open("reset_password.html", "r", encoding="utf-8") as f:
-        return f.read()
-
-@app.route('/reset-password', methods=['POST'])
-def reset_password_submit():
-    data = request.get_json()
-    token = data.get("token", "").strip()
-    new_password = data.get("password", "").strip()
-
-    if not token or not new_password:
-        return jsonify({"success": False, "message": "Missing fields"}), 400
-
-    try:
-        payload = reset_serializer.loads(token, max_age=RESET_TOKEN_MAX_AGE)
-    except SignatureExpired:
-        return jsonify({"success": False, "message": "Reset link has expired"}), 400
-    except BadSignature:
-        return jsonify({"success": False, "message": "Invalid reset link"}), 400
-
-    user_id = payload.get("user_id")
-    users = db.read_json("users.json")
-    for u in users:
-        if u.get("user_id") == user_id:
-            u["password_hash"] = generate_password_hash(new_password)
-            db.write_json("users.json", users)
-            return jsonify({"success": True, "message": "Password reset successful"})
-
-    return jsonify({"success": False, "message": "Account not found"}), 400
 
 # ================= COMMENT =================
 @app.route('/comment', methods=['POST'])
@@ -173,12 +102,12 @@ def comment():
     comments = db.read_json("comments.json")
 
     comments.append({
-        "id": str(len(comments) + 1),
-        "user": user,
-        "paper": data.get("paper", ""),
-        "text": data.get("text", ""),
-        "votes": 0,
-        "voters": {},
+        "id":      str(len(comments) + 1),
+        "user":    user,
+        "paper":   data.get("paper", ""),
+        "text":    data.get("text", ""),
+        "votes":   0,
+        "voters":  {},
         "replies": []
     })
 
@@ -191,9 +120,9 @@ def comment():
 def vote():
     data = request.get_json()
 
-    cid = str(data.get("id"))
+    cid    = str(data.get("id"))
     action = data.get("action")
-    user = data.get("user", "")
+    user   = data.get("user", "")
 
     if not user or user in ["undefined", "null"]:
         return jsonify({"message": "Not logged in"}), 401
@@ -204,31 +133,29 @@ def vote():
         if str(c.get("id")) != cid:
             continue
 
+        c.setdefault("votes",  0)
         c.setdefault("voters", {})
 
         previous = c["voters"].get(user)
 
         if previous == action:
-            # Toggle off: remove the vote entirely
-            del c["voters"][user]
-        else:
-            c["voters"][user] = action
+            return jsonify({"message": "Already voted", "votes": c["votes"]})
 
-        upvotes = sum(1 for v in c["voters"].values() if v == "upvote")
-        downvotes = sum(1 for v in c["voters"].values() if v == "downvote")
+        if previous == "upvote":
+            c["votes"] -= 1
+        elif previous == "downvote":
+            c["votes"] += 1
 
-        c["upvotes"] = upvotes
-        c["downvotes"] = downvotes
-        c["votes"] = upvotes - downvotes
+        if action == "upvote":
+            c["votes"] += 1
+            c["voters"][user] = "upvote"
+        elif action == "downvote":
+            c["votes"] -= 1
+            c["voters"][user] = "downvote"
 
         db.write_json("comments.json", comments)
 
-        return jsonify({
-            "message": "Vote updated",
-            "votes": c["votes"],
-            "upvotes": upvotes,
-            "downvotes": downvotes
-        })
+        return jsonify({"message": "Vote updated", "votes": c["votes"]})
 
     return jsonify({"message": "Not found"}), 404
 
@@ -241,18 +168,16 @@ def reply():
     if not user or user in ["undefined", "null"]:
         return jsonify({"message": "Not logged in"}), 401
 
-    cid = str(data.get("id"))
+    cid      = str(data.get("id"))
     comments = db.read_json("comments.json")
 
     for c in comments:
         if str(c.get("id")) == cid:
-
             c.setdefault("replies", [])
             c["replies"].append({
                 "user": user,
                 "text": data.get("text", "")
             })
-
             db.write_json("comments.json", comments)
             return jsonify({"message": "Reply added"})
 
@@ -264,15 +189,93 @@ def get_comments():
     comments = db.read_json("comments.json")
 
     for c in comments:
-        c.setdefault("voters", {})
+        c.setdefault("votes",   0)
+        c.setdefault("voters",  {})
         c.setdefault("replies", [])
-        c["upvotes"] = sum(1 for v in c["voters"].values() if v == "upvote")
-        c["downvotes"] = sum(1 for v in c["voters"].values() if v == "downvote")
-        c["votes"] = c["upvotes"] - c["downvotes"]
 
     comments.sort(key=lambda x: x.get("votes", 0), reverse=True)
 
     return jsonify(comments)
+
+# ================= FILE UPLOAD =================
+import os
+from werkzeug.utils import secure_filename
+
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    user        = request.form.get("user", "")
+    subject     = request.form.get("subject", "")
+    answer_type = request.form.get("type", "")
+    paper_id    = request.form.get("paper_id", "")   # ← NEW: capture paper_id
+
+    if not user:
+        return jsonify({"success": False, "message": "Not logged in"}), 401
+
+    if "file" not in request.files:
+        return jsonify({"success": False, "message": "No file uploaded"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"success": False, "message": "Empty file"}), 400
+
+    filename    = secure_filename(file.filename)
+    stored_name = f"{len(os.listdir(UPLOAD_DIR))}_{filename}"
+    save_path   = os.path.join(UPLOAD_DIR, stored_name)
+
+    file.save(save_path)
+
+    solutions = db.read_json("solutions.json")
+
+    solutions.append({
+        "id":       str(len(solutions) + 1),
+        "user":     user,
+        "subject":  subject,
+        "type":     answer_type,
+        "paper_id": paper_id,     # ← NEW: store paper_id so solutions are grouped by trimester
+        "filename": filename,
+        "stored":   stored_name
+    })
+
+    db.write_json("solutions.json", solutions)
+
+    return jsonify({"success": True, "message": "Upload success"})
+
+
+# ================= GET SOLUTIONS =================
+@app.route('/solutions')
+def solutions():
+    subject  = request.args.get("subject")
+    paper_id = request.args.get("paper_id")   # ← NEW: optional paper_id filter
+    data     = db.read_json("solutions.json")
+
+    if subject:
+        data = [s for s in data if s.get("subject") == subject]
+
+    if paper_id:
+        data = [s for s in data if str(s.get("paper_id", "")) == str(paper_id)]
+
+    return jsonify(data)
+
+
+# ================= DOWNLOAD =================
+@app.route('/download/<file_id>')
+def download(file_id):
+    data = db.read_json("solutions.json")
+
+    for s in data:
+        if str(s.get("id")) == str(file_id):
+            return send_file(
+                os.path.join(UPLOAD_DIR, s["stored"]),
+                as_attachment=True
+            )
+
+    return jsonify({"message": "File not found"}), 404
 
 # ================= ADMIN VERIFY =================
 @app.route('/admin/verify', methods=['POST'])
@@ -280,7 +283,7 @@ def admin_verify():
     data = request.get_json()
 
     login_input = data.get("username", "").strip()
-    password = data.get("password", "")
+    password    = data.get("password", "")
 
     user = db.get_user_by_username(login_input)
     if not user:
@@ -306,212 +309,34 @@ def admin_verify():
             "message": "Wrong password"
         }), 403
 
-    session["admin_verified"] = True
-    session["admin_user_id"] = user.get("user_id")
+    session["admin_verified"]  = True
+    session["admin_user_id"]   = user.get("user_id")
 
     return jsonify({
         "success": True,
         "message": "Admin verified"
     })
 
+# ================= ADMIN PAGES =================
 @app.route('/admin-dashboard')
 @require_admin
 def admin_dashboard():
-    with open("admin.html", "r", encoding="utf-8") as f:
-        return f.read()
-    
+    return send_file("frontend/admin.html")
+
 @app.route('/admin/stats')
 @require_admin
 def admin_stats():
-    users = db.read_json("users.json")
-    subjects = db.read_json("subjects.json")
-    comments = db.read_json("comments.json")
-    solutions = db.read_json("solutions.json")
-
+    stats = db.get_system_stats()
     return jsonify({
-        "users": len(users),
-        "subjects": len(subjects),
-        "papers": sum(len(s.get("papers", [])) for s in subjects),
-        "comments": len(comments),
-        "solutions": len(solutions),
-        "banned_users": sum(1 for u in users if u.get("status") == "banned")
+        "subjects":     stats["total_subjects"],
+        "papers":       stats["total_papers"],
+        "users":        stats["total_users"],
+        "solutions":    stats["total_solutions"],
+        "comments":     stats["total_comments"],
+        "banned_users": sum(1 for u in db.get_all_users() if u.get("status") == "banned")
     })
-   
-@app.route('/admin/flagged/solutions')
-@require_admin
-def admin_flagged_solutions():
-    solutions = db.read_json("solutions.json")
-    flagged = [s for s in solutions if s.get("flags", 0) > 0]
-    return jsonify(flagged)
 
-@app.route('/admin/flagged/comments')
-@require_admin
-def admin_flagged_comments():
-    comments = db.read_json("comments.json")
-    flagged = [c for c in comments if c.get("flags", 0) > 0]
-    return jsonify(flagged)
-
-@app.route('/admin/flag/dismiss', methods=['POST'])
-@require_admin
-def admin_flag_dismiss():
-    data = request.get_json()
-    content_type = data.get("type")
-    content_id = str(data.get("id"))
-
-    if content_type == "solution":
-        solutions = db.read_json("solutions.json")
-        for s in solutions:
-            if str(s.get("solution_id")) == content_id:
-                s["flags"] = 0
-                s["flagged_by"] = []
-        db.write_json("solutions.json", solutions)
-
-    elif content_type == "comment":
-        comments = db.read_json("comments.json")
-        for c in comments:
-            if str(c.get("comment_id", c.get("id", ""))) == content_id:
-                c["flags"] = 0
-        db.write_json("comments.json", comments)
-
-    return jsonify({"success": True})
-
-@app.route('/admin/solution/delete', methods=['POST'])
-@require_admin
-def admin_delete_solution():
-    data = request.get_json()
-    result = db.delete_solution(str(data.get("id")), role="admin")
-    return jsonify({"success": bool(result)})
-
-@app.route('/admin/comment/delete', methods=['POST'])
-@require_admin
-def admin_delete_comment():
-    data = request.get_json()
-    result = db.delete_comment(str(data.get("id")), role="admin")
-    return jsonify({"success": bool(result)})
-
-@app.route('/flag/comment', methods=['POST'])
-def flag_comment():
-    data = request.get_json()
-    user = data.get("user", "")
-    if not user or user in ["undefined", "null"]:
-        return jsonify({"message": "Not logged in"}), 401
-
-    comment_id = str(data.get("comment_id"))
-    comments = db.read_json("comments.json")
-    for c in comments:
-        if str(c.get("comment_id", c.get("id"))) == comment_id:
-            c.setdefault("flags", 0)
-            c["flags"] += 1
-            db.write_json("comments.json", comments)
-            return jsonify({"success": True})
-
-    return jsonify({"message": "Not found"}), 404
-
-@app.route('/solutions')
-def get_solutions():
-    paper_id = request.args.get("paper_id")
-    solutions = db.read_json("solutions.json")
-    if paper_id:
-        solutions = [s for s in solutions if s.get("paper_id") == paper_id]
-    return jsonify(solutions)
-
-# ================= UPLOAD SOLUTION =================
-@app.route('/upload', methods=['POST'])
-def upload_solution():
-    paper_id = request.form.get("paper_id", "").strip()
-    uploader_username = request.form.get("uploader_username", "").strip()
-    uploader_id = request.form.get("uploader_id", "").strip() or "anonymous"
-
-    if not paper_id or not uploader_username:
-        return jsonify({"success": False, "message": "Missing fields"}), 400
-
-    if 'file' not in request.files:
-        return jsonify({"success": False, "message": "No file provided"}), 400
-
-    file = request.files['file']
-
-    if file.filename == '':
-        return jsonify({"success": False, "message": "No file selected"}), 400
-
-    if not allowed_file(file.filename):
-        return jsonify({"success": False, "message": "File type not allowed"}), 400
-
-    safe_name = secure_filename(file.filename)
-    unique_name = f"{uuid.uuid4().hex}_{safe_name}"
-    filepath = os.path.join(UPLOAD_DIR, unique_name)
-    file.save(filepath)
-
-    solution = db.add_solution(paper_id, uploader_id, uploader_username, unique_name, file.filename)
-
-    return jsonify({"success": True, "message": "Upload successful", "solution": solution})
-
-# ================= DOWNLOAD SOLUTION =================
-@app.route('/uploads/<filename>')
-def download_solution(filename):
-    solutions = db.read_json("solutions.json")
-    match = next((s for s in solutions if s.get("filepath") == filename), None)
-    download_name = match.get("original_filename", filename) if match else filename
-    return send_from_directory(UPLOAD_DIR, filename, as_attachment=True, download_name=download_name)
-
-@app.route('/solution/upvote', methods=['POST'])
-def upvote_solution():
-    data = request.get_json()
-    user = data.get("user", "")
-    if not user or user in ["undefined", "null"]:
-        return jsonify({"message": "Not logged in"}), 401
-    result = db.update_solution_upvotes(str(data.get("solution_id")), user)
-    if result:
-        return jsonify({"success": True, "upvotes": result["upvotes"]})
-    return jsonify({"message": "Not found"}), 404
-
-@app.route('/flag/solution', methods=['POST'])
-def flag_solution():
-    data = request.get_json()
-    user = data.get("user", "")
-    if not user or user in ["undefined", "null"]:
-        return jsonify({"message": "Not logged in"}), 401
-    result = db.update_solution_flags(str(data.get("solution_id")), user)
-    if result:
-        return jsonify({"success": True, "flags": result["flags"]})
-    return jsonify({"message": "Not found"}), 404 
-
-@app.route('/admin/users')
-@require_admin
-def admin_users():
-    users = db.read_json("users.json")
-    safe_users = [{
-        "user_id": u.get("user_id"),
-        "username": u.get("username"),
-        "user_email": u.get("user_email"),
-        "role": u.get("role"),
-        "status": u.get("status", "active")
-    } for u in users]
-    return jsonify(safe_users)
-
-@app.route('/admin/user/ban', methods=['POST'])
-@require_admin
-def admin_ban_user():
-    data = request.get_json()
-    user_id = str(data.get("user_id"))
-
-    user = db.get_user_by_id(user_id)
-    if not user:
-        return jsonify({"success": False, "message": "User not found"}), 404
-    if user.get("role") == "admin":
-        return jsonify({"success": False, "message": "Cannot ban admin"}), 403
-
-    db.update_user_status(user_id, "banned")
-    return jsonify({"success": True})
-
-@app.route('/admin/user/unban', methods=['POST'])
-@require_admin
-def admin_unban_user():
-    data = request.get_json()
-    user_id = str(data.get("user_id"))
-    db.update_user_status(user_id, "active")
-    return jsonify({"success": True})       
-    
-    # ================= RUN =================
+# ================= RUN =================
 if __name__ == "__main__":
     db.init_db()
     app.run(debug=True)

@@ -114,9 +114,7 @@ def init_db():
                 "target_id": "p1",
                 "user_id": "2",
                 "username": "student",
-                "text": "Does anyone know how to solve Question 3b?",
-                "flags": 0,
-                "flagged_by": []
+                "text": "Does anyone know how to solve Question 3b?"
             }
         ]
         write_json('comments.json', comments)
@@ -233,33 +231,11 @@ def add_paper_to_subject(subject_id, year, trimester):
             return new_paper
     return None
 
-def search_papers(year=None, trimester=None):
-    """Filter past year papers by year and trimester across all subjects."""
-    subjects = read_json('subjects.json')
-    results = []
-    
-    for subject in subjects:
-        for paper in subject.get('papers', []):
-            match = True
-            if year and str(paper.get('year')) != str(year):
-                match = False
-            if trimester and str(paper.get('trimester')).lower() != str(trimester).lower():
-                match = False
-                
-            if match:
-                # Attach subject info to the paper result for context
-                paper_copy = paper.copy()
-                paper_copy['subject_name'] = subject.get('name')
-                paper_copy['subject_code'] = subject.get('subject_code')
-                results.append(paper_copy)
-                
-    return results
-
 # ------------------------------------------
 # SOLUTIONS & FILE UPLOADS
 # ------------------------------------------
 
-def add_solution(paper_id, uploader_id, uploader_username, filepath, original_filename=None):
+def add_solution(paper_id, uploader_id, uploader_username, filepath):
     """Add a new solution entry to solutions.json."""
     solutions = read_json('solutions.json')
     new_solution = {
@@ -268,7 +244,6 @@ def add_solution(paper_id, uploader_id, uploader_username, filepath, original_fi
         "uploader_id": uploader_id,
         "uploader_username": uploader_username,
         "filepath": filepath,
-        "original_filename": original_filename or filepath,
         "upvotes": 0,
         "flags": 0,
         "upvoted_by": [],
@@ -342,32 +317,11 @@ def add_comment(target_type, target_id, user_id, username, text):
         "target_id": target_id,
         "user_id": user_id,
         "username": username,
-        "text": text,
-        "flags": 0,
-        "flagged_by": []
+        "text": text
     }
     comments.append(new_comment)
     write_json('comments.json', comments)
     return new_comment
-
-def update_comment_flags(comment_id, user_id):
-    """Toggle the flags for a comment by a user."""
-    comments = read_json('comments.json')
-    for c in comments:
-        if c.get('comment_id') == comment_id:
-            flagged_by = c.get('flagged_by', [])
-            if user_id in flagged_by:
-                # Remove flag
-                flagged_by.remove(user_id)
-                c['flags'] = max(0, c.get('flags', 1) - 1)
-            else:
-                # Add flag
-                flagged_by.append(user_id)
-                c['flags'] = c.get('flags', 0) + 1
-            c['flagged_by'] = flagged_by
-            write_json('comments.json', comments)
-            return c
-    return None
 
 def get_comments_by_target(target_type, target_id):
     """Retrieve all comments for a specific target (paper or solution)."""
@@ -377,15 +331,6 @@ def get_comments_by_target(target_type, target_id):
 # ------------------------------------------
 # ADMINISTRATIVE OPERATIONS
 # ------------------------------------------
-def get_flagged_solutions():
-    """Retrieve all solutions that have been flagged by at least one user."""
-    solutions = read_json('solutions.json')
-    return [s for s in solutions if s.get('flags', 0) > 0]
-
-def get_flagged_comments():
-    """Retrieve all comments that have been flagged by at least one user."""
-    comments = read_json('comments.json')
-    return [c for c in comments if c.get('flags', 0) > 0]
 
 def update_user_status(user_id, status):
     """Update a user's status (e.g., 'active' or 'banned')."""
