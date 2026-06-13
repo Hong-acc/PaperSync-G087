@@ -1,0 +1,66 @@
+/* 1. Basic Setup */
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #e0eafc; /* Simple blue background */
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Fill the whole screen height */
+}
+
+/* 2. Navigation Bar */
+.navbar {
+    display: flex;
+    justify-content: space-between; /* Logo on left, links on right */
+    padding: 20px;
+    background: white;
+}
+
+.nav-links a {
+    margin: 0 10px;
+    text-decoration: none; /* Remove the underline */
+    color: #333;
+}
+
+/* 3. The Centered Login Box */
+.container {
+    flex: 1; /* Take up all remaining space */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+}
+
+.login-card {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    width: 300px;
+}
+
+/* 4. Form Styling */
+.form-group {
+    margin-bottom: 15px;
+}
+
+
+input {
+    width: 100%;
+    padding-top: 15px;      /* Top space */
+    padding-bottom: 15px;   /* Bottom space */
+    padding-left: 15px;     /* This creates the gap on the left side! */
+    
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;          /* Removes the default blue outline when clicking */        
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
