@@ -1,0 +1,16 @@
+[
+    {
+        "user_id": "1",
+        "username": "admin",
+        "user_email": "admin@mmu.edu.my",
+        "password_hash": "scrypt:32768:8:1$0LY5OaAuTMhxSksl$efa984c1bfe93eff92babf40823ad38c9a548a0c036cec9540c7a3f3488e4043bb70e2f152129db84278e844c13015a964ddb2af90ba41eba1aec7e4cd3cde3b",
+        "role": "admin"
+    },
+    {
+        "user_id": "2",
+        "username": "student",
+        "user_email": "student@student.mmu.edu.my",
+        "password_hash": "scrypt:32768:8:1$zOWrQtSAgTNsYCgn$00a77c92936e8b86ebacb1dc9d5eaad15c51d71c42f427e278a997e687b4238cf8f6060cd9330d2d468528b99c2b8751ccd494b5bc5aa17926f49b079104d874",
+        "role": "student"
+    }
+]
