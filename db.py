@@ -369,7 +369,6 @@ def update_comment_flags(comment_id, user_id):
             return c
     return None
 
-
 def get_comments_by_target(target_type, target_id):
     """Retrieve all comments for a specific target (paper or solution)."""
     comments = read_json('comments.json')
