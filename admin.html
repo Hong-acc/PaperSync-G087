@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>PaperSync - Admin Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', Arial, sans-serif;
+            background: #eef4ff;
+            color: #1f2937;
+            min-height: 100vh;
+        }
+
+        .admin-top {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .back-btn {
+            padding: 9px 14px;
+            border: none;
+            border-radius: 8px;
+            background: #111827;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .dashboard {
+            max-width: 1100px;
+            margin: 32px auto;
+            padding: 0 22px;
+        }
+
+        .dashboard-header {
+            margin-bottom: 24px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+
+        .dashboard-header p {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+
+        .code-map {
+            margin-top: 14px;
+            background: #ffffff;
+            border: 1px solid #dbeafe;
+            color: #1d4ed8;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .stat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: 1rem;
+        }
+
+        .blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .green {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .purple {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .orange {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        .red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .gray {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .section {
+            margin-top: 28px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .section p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 800px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-top {
+                padding: 14px 18px;
+            }
+
+            .dashboard {
+                margin: 24px auto;
+            }
+        }
+
+.tab-nav {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.tab-btn.active {
+    color: #1d4ed8;
+    border-bottom-color: #1d4ed8;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.flag-list { display: flex; flex-direction: column; gap: 10px; }
+
+.flag-item {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.flag-meta { font-size: 0.8rem; color: #9a3412; font-weight: 600; margin-bottom: 4px; }
+.flag-text { font-size: 0.9rem; color: #1f2937; }
+
+.flag-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.btn-sm {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-danger { background: #fee2e2; color: #dc2626; }
+.btn-muted  { background: #f3f4f6; color: #374151; }
+.empty-state { text-align: center; padding: 32px 16px; color: #9ca3af; font-size: 0.9rem; }
+
+    </style>
+</head>
+<body>
+
+    <div class="admin-top">
+        <div class="brand">
+            <i class="fa-solid fa-gauge-high"></i>
+            PaperSync Admin
+        </div>
+
+        <button class="back-btn" onclick="window.location.href='/frontend'">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back to Home
+        </button>
+    </div>
+
+    <main class="dashboard">
+        <div class="dashboard-header">
+            <h1>Admin Dashboard</h1>
+            <p>Monitor system data and manage PaperSync content.</p>
+
+            <div class="code-map">
+                Admin access uses: JS verifyAdminIdentity(), API POST /admin/verify, Flask session, DB users.json role/password_hash, and @mmu.edu.my email.
+            </div>
+        </div>
+
+        <section class="stats-grid" id="adminStats">
+            <div class="stat-card">
+                <div class="stat-icon gray"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                <div class="stat-label">Loading</div>
+                <div class="stat-value">...</div>
+            </div>
+        </section>
+
+        <section class="section">
+    <h2><i class="fa-solid fa-flag" style="color:#dc2626;margin-right:7px;"></i>Flagged Content</h2>
+    <p style="margin-bottom:16px;">Review reported solutions and comments.</p>
+
+<div class="tab-nav">
+    <button class="tab-btn active" onclick="switchFlagTab('solutions', this)">
+        <i class="fa-solid fa-file-lines"></i> Flagged Solutions
+    </button>
+    <button class="tab-btn" onclick="switchFlagTab('comments', this)">
+        <i class="fa-solid fa-comments"></i> Flagged Comments
+    </button>
+    <button class="tab-btn" onclick="switchFlagTab('users', this)">
+        <i class="fa-solid fa-users"></i> User Management
+    </button>
+</div>
+
+<div class="tab-panel active" id="flagTab-solutions">
+    <div class="flag-list" id="flaggedSolutionsList"></div>
+</div>
+
+<div class="tab-panel" id="flagTab-comments">
+    <div class="flag-list" id="flaggedCommentsList"></div>
+</div>
+
+<div class="tab-panel" id="flagTab-users">
+    <div class="flag-list" id="usersList"></div>
+</div>
+
+        </section>
+
+        <section class="section">
+            <h2>Live Data</h2>
+            <p>
+                Live Data uses: JS loadAdminStats(), API GET /admin/stats, DB db.get_admin_stats().
+            </p>
+        </section>
+    </main>
+
+    <script>
+        function loadAdminStats() {
+            fetch("/admin/stats")
+                .then(response => {
+                    if (response.status === 401) {
+                        alert("Please verify admin identity first.");
+                        window.location.href = "/frontend";
+                        return;
+                    }
+
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data) return;
+
+                    document.getElementById("adminStats").innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-icon blue"><i class="fa-solid fa-book"></i></div>
+                            <div class="stat-label">Subjects</div>
+                            <div class="stat-value">${data.subjects}</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fa-solid fa-file-lines"></i></div>
+                            <div class="stat-label">Past Year Papers</div>
+                            <div class="stat-value">${data.papers}</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
+                            <div class="stat-label">Users</div>
+                            <div class="stat-value">${data.users}</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="fa-solid fa-comments"></i></div>
+                            <div class="stat-label">Comments</div>
+                            <div class="stat-value">${data.comments}</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon red"><i class="fa-solid fa-ban"></i></div>
+                            <div class="stat-label">Banned Users</div>
+                            <div class="stat-value">${data.banned_users}</div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon gray"><i class="fa-solid fa-lightbulb"></i></div>
+                            <div class="stat-label">Solutions</div>
+                            <div class="stat-value">${data.solutions}</div>
+                        </div>
+                    `;
+                });
+        }
+
+        loadAdminStats();
+
+    function switchFlagTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('flagTab-' + tab).classList.add('active');
+}
+
+function loadFlaggedContent() {
+    fetch("/admin/flagged/solutions")
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById("flaggedSolutionsList");
+            if (!data.length) {
+                el.innerHTML = '<div class="empty-state">No flagged solutions</div>';
+                return;
+            }
+            el.innerHTML = data.map(s => `
+                <div class="flag-item" id="fsol-${s.solution_id}">
+                    <div>
+                        <div class="flag-meta">${s.flags} flag(s) · Uploaded by ${s.uploader_username} · Paper: ${s.paper_id}</div>
+                        <div class="flag-text">${s.filepath}</div>
+                    </div>
+                    <div class="flag-actions">
+                        <button class="btn-sm btn-muted" onclick="dismissFlag('solution','${s.solution_id}')">Dismiss</button>
+                        <button class="btn-sm btn-danger" onclick="deleteContent('solution','${s.solution_id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        });
+
+    fetch("/admin/flagged/comments")
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById("flaggedCommentsList");
+            if (!data.length) {
+                el.innerHTML = '<div class="empty-state">No flagged comments</div>';
+                return;
+            }
+            el.innerHTML = data.map(c => `
+                <div class="flag-item" id="fcmt-${c.comment_id}">
+                    <div>
+                        <div class="flag-meta">Flagged · By ${c.username || c.user}</div>
+                        <div class="flag-text">${c.text}</div>
+                    </div>
+                    <div class="flag-actions">
+                        <button class="btn-sm btn-muted" onclick="dismissFlag('comment','${c.comment_id}')">Dismiss</button>
+                        <button class="btn-sm btn-danger" onclick="deleteContent('comment','${c.comment_id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        });
+}
+
+function dismissFlag(type, id) {
+    fetch("/admin/flag/dismiss", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ type, id })
+    }).then(() => {
+        const prefix = type === 'solution' ? 'fsol' : 'fcmt';
+        document.getElementById(`${prefix}-${id}`)?.remove();
+    });
+}
+
+function deleteContent(type, id) {
+    if (!confirm(`Delete this ${type}?`)) return;
+    fetch(`/admin/${type}/delete`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ id })
+    }).then(() => {
+        const prefix = type === 'solution' ? 'fsol' : 'fcmt';
+        document.getElementById(`${prefix}-${id}`)?.remove();
+    });
+}
+
+function loadUsers() {
+    fetch("/admin/users")
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById("usersList");
+            if (!data.length) {
+                el.innerHTML = '<div class="empty-state">No users found</div>';
+                return;
+            }
+            el.innerHTML = data.map(u => `
+                <div class="flag-item" id="user-${u.user_id}">
+                    <div>
+                        <div class="flag-meta">${u.role.toUpperCase()} · ${u.status === 'banned' ? '🚫 Banned' : '✅ Active'}</div>
+                        <div class="flag-text">${u.username} (${u.user_email})</div>
+                    </div>
+                    <div class="flag-actions">
+                        ${u.role === 'admin' ? '<span style="font-size:0.8rem;color:#9ca3af;">Protected</span>' :
+                          u.status === 'banned'
+                            ? `<button class="btn-sm btn-muted" onclick="unbanUser('${u.user_id}')">Unban</button>`
+                            : `<button class="btn-sm btn-danger" onclick="banUser('${u.user_id}')">Ban</button>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        });
+}
+
+function banUser(userId) {
+    if (!confirm("Ban this user?")) return;
+    fetch("/admin/user/ban", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ user_id: userId })
+    }).then(() => loadUsers());
+}
+
+function unbanUser(userId) {
+    fetch("/admin/user/unban", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ user_id: userId })
+    }).then(() => loadUsers());
+}
+
+// CALL DURING PAGE INITIALIZATION
+loadFlaggedContent();
+loadUsers();    
+    </script>
+</body>
+</html>
