@@ -594,25 +594,35 @@
     }
 
     function search() {
-    const input = document.getElementById('searchInput')
-        .value.trim()
-        .toUpperCase();
+        const input = document.getElementById('searchInput').value.trim().toUpperCase();
+        const resultCard = document.getElementById('resultCard');
+        const notFound   = document.getElementById('notFound');
+        const section    = document.getElementById('uploadSection');
 
-    if (!input) return;
+        resultCard.classList.remove('show');
+        notFound.classList.remove('show');
 
-    if (subjects[input]) {
+        if (!input) return;
 
-        window.location.href =
-            '/subject?code=' +
-            encodeURIComponent(input);
-
-    } else {
-
-        document.getElementById('notFound')
-            .classList.add('show');
-
+        if (subjects[input]) {
+            const s    = subjects[input];
+            const meta = catMeta[s.cat];
+            document.getElementById('resultCode').textContent = input;
+            document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
+            document.getElementById('resultDesc').textContent = s.desc;
+            const badge = document.getElementById('resultBadge');
+            badge.className = `badge ${meta.badgeClass}`;
+            badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
+            resultCard.classList.add('show');
+            loadPapers(input);
+            document.getElementById('uploadSubjectLabel').textContent = input;
+            section.classList.add('show');
+        
+        } else {
+            notFound.classList.add('show');
+            section.classList.remove('show');
+        }
     }
-}
 
     document.getElementById('searchInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') search();
@@ -716,7 +726,7 @@ function loadSolutions(paperId) {
 
     const solsHtml = sortedSolutions.length ? sortedSolutions.map(s => `
       <div class="cm-card" style="border-left:3px solid #10b981;">
-        <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· Solution file</span></div>
+        <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· ${s.answer_type || 'Solution'}</span></div>
         <div class="cm-text" style="font-family:'DM Mono',monospace;font-size:0.82rem;">${s.original_filename || s.filepath}</div>
         <div class="cm-votes">
           <a class="cm-vote" style="text-decoration:none;display:inline-flex;align-items:center;" href="/uploads/${encodeURIComponent(s.filepath)}" download>⬇️ Download</a>
