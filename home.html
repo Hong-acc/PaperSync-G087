@@ -726,7 +726,7 @@ function loadSolutions(paperId) {
 
     const solsHtml = sortedSolutions.length ? sortedSolutions.map(s => `
       <div class="cm-card" style="border-left:3px solid #10b981;">
-        <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· Solution file</span></div>
+        <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· ${s.answer_type || 'Solution'}</span></div>
         <div class="cm-text" style="font-family:'DM Mono',monospace;font-size:0.82rem;">${s.original_filename || s.filepath}</div>
         <div class="cm-votes">
           <a class="cm-vote" style="text-decoration:none;display:inline-flex;align-items:center;" href="/uploads/${encodeURIComponent(s.filepath)}" download>⬇️ Download</a>

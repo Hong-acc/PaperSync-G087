@@ -421,6 +421,7 @@ def upload_solution():
     paper_id = request.form.get("paper_id", "").strip()
     uploader_username = request.form.get("uploader_username", "").strip()
     uploader_id = request.form.get("uploader_id", "").strip() or "anonymous"
+    answer_type = request.form.get("answer_type", "").strip() or "Solution"
 
     if not paper_id or not uploader_username:
         return jsonify({"success": False, "message": "Missing fields"}), 400
@@ -442,6 +443,15 @@ def upload_solution():
     file.save(filepath)
 
     solution = db.add_solution(paper_id, uploader_id, uploader_username, unique_name, file.filename)
+
+    # Attach answer_type without modifying db.py's add_solution signature
+    solutions = db.read_json("solutions.json")
+    for s in solutions:
+        if s.get("solution_id") == solution.get("solution_id"):
+            s["answer_type"] = answer_type
+            solution = s
+            break
+    db.write_json("solutions.json", solutions)
 
     return jsonify({"success": True, "message": "Upload successful", "solution": solution})
 
