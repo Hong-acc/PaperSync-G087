@@ -475,6 +475,47 @@ def flag_solution():
         return jsonify({"success": True, "flags": result["flags"]})
     return jsonify({"message": "Not found"}), 404 
 
+@app.route('/admin/subject/add', methods=['POST'])
+@require_admin
+def admin_add_subject():
+    subject_code = request.form.get("subject_code")
+    subject_name = request.form.get("subject_name")
+    trimester = request.form.get("trimester")
+    category = request.form.get("category")
+
+    if not subject_code or not subject_name or not trimester or not category:
+        return "Missing required fields", 400
+
+    db.add_subject(subject_name, subject_code, trimester, category)
+    return redirect('/admin-dashboard')
+
+@app.route('/admin/paper/add', methods=['POST'])
+@require_admin
+def admin_add_paper():
+    subject_id = request.form.get("subject_id")
+    year = request.form.get("year")
+    trimester = request.form.get("trimester")
+
+    if not subject_id or not year or not trimester:
+        return "Missing required fields", 400
+
+    filepath = None
+    if 'file' in request.files:
+        file = request.files['file']
+        if file and file.filename != '':
+            if not file.filename.lower().endswith('.pdf'):
+                return "Only PDF files allowed", 400
+            safe_name = secure_filename(file.filename)
+            unique_name = f"paper_{uuid.uuid4().hex[:8]}_{safe_name}"
+            file.save(os.path.join(UPLOAD_DIR, unique_name))
+            filepath = unique_name
+
+    paper = db.add_paper_to_subject(subject_id, year, trimester, filepath)
+    if not paper:
+        return "Subject not found", 404
+        
+    return redirect('/admin-dashboard')
+
 @app.route('/admin/users')
 @require_admin
 def admin_users():
