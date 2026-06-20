@@ -380,6 +380,16 @@
     </main>
 
     <script>
+        // Check for success messages in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'paper_added') {
+            alert('File Uploaded!');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (urlParams.get('success') === 'subject_added') {
+            alert('Subject Created Successfully!');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
         function loadAdminStats() {
             fetch("/admin/stats")
                 .then(response => {

@@ -457,6 +457,7 @@ def upload_solution():
 
 # ================= DOWNLOAD SOLUTION =================
 @app.route('/uploads/<filename>')
+@app.route('/download/<filename>')
 def download_solution(filename):
     solutions = db.read_json("solutions.json")
     match = next((s for s in solutions if s.get("filepath") == filename), None)
@@ -497,7 +498,7 @@ def admin_add_subject():
         return "Missing required fields", 400
 
     db.add_subject(subject_name, subject_code, trimester, category)
-    return redirect('/admin-dashboard')
+    return redirect('/admin-dashboard?success=subject_added')
 
 @app.route('/admin/paper/add', methods=['POST'])
 @require_admin
@@ -524,7 +525,7 @@ def admin_add_paper():
     if not paper:
         return "Subject not found", 404
         
-    return redirect('/admin-dashboard')
+    return redirect('/admin-dashboard?success=paper_added')
 
 @app.route('/admin/users')
 @require_admin
