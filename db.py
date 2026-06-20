@@ -259,7 +259,7 @@ def search_papers(year=None, trimester=None):
 # SOLUTIONS & FILE UPLOADS
 # ------------------------------------------
 
-def add_solution(paper_id, uploader_id, uploader_username, filepath, original_filename=None):
+def add_solution(paper_id, uploader_id, uploader_username, filepath):
     """Add a new solution entry to solutions.json."""
     solutions = read_json('solutions.json')
     new_solution = {
@@ -268,7 +268,6 @@ def add_solution(paper_id, uploader_id, uploader_username, filepath, original_fi
         "uploader_id": uploader_id,
         "uploader_username": uploader_username,
         "filepath": filepath,
-        "original_filename": original_filename,
         "upvotes": 0,
         "flags": 0,
         "upvoted_by": [],
@@ -368,7 +367,6 @@ def update_comment_flags(comment_id, user_id):
             write_json('comments.json', comments)
             return c
     return None
-
 
 def get_comments_by_target(target_type, target_id):
     """Retrieve all comments for a specific target (paper or solution)."""

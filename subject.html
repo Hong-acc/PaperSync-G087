@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>PaperSync - Subject</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --accent: #4f6ef7;        
+            --accent-dark: #3655e8;   
+            --cat-math: #f59e0b;     
+            --cat-lang: #10b981;      
+            --cat-sci: #8b5cf6;      
+            --cat-cs: #3b82f6;      
+            --cat-media: #ec4899;    
+            --cat-biz: #f97316;       
+        }
+
+        body {
+            font-family: 'DM Sans', Arial, sans-serif;
+            background: #cde4fb;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: rgba(255,255,255,0.92); 
+            backdrop-filter: blur(12px);        
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;     
+            align-items: center;
+            position: sticky;                  
+            top: 0;
+            z-index: 200;                       
+        }
+        .top-bar .site-name { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; letter-spacing: -0.3px; }
+        .top-bar .user-info { font-size: 0.85rem; color: #6b7280; font-weight: 500; }
+
+        .main { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+
+        .result-card {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 20px 24px;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        .result-card.show { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+        .result-card .code { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: #9ca3af; letter-spacing: 1px; margin-bottom: 5px; }
+        .result-card .subject-name { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+        .result-card .description { font-size: 0.88rem; color: #6b7280; line-height: 1.65; }
+
+        .badge-math  { background: #fef3c7; color: #d97706; }
+        .badge-lang  { background: #d1fae5; color: #059669; }
+        .badge-sci   { background: #ede9fe; color: #7c3aed; }
+        .badge-cs    { background: #dbeafe; color: #1d4ed8; }
+        .badge-media { background: #fce7f3; color: #be185d; }
+        .badge-biz   { background: #ffedd5; color: #c2410c; }
+        .badge-other { background: #f3f4f6; color: #374151; }
+
+        .not-found {
+            color: #ef4444;
+            font-size: 0.88rem;
+            display: none; 
+            padding: 14px 18px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .not-found.show { display: block; }
+
+        .upload-section { display: none; margin-top: 18px; }
+        .upload-section.show { display: block; }
+        .upload-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 22px 24px; }
+        .upload-card h3 { font-size: 0.97rem; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+        .upload-fields { display: flex; flex-direction: column; gap: 11px; }
+        .field-group { display: flex; flex-direction: column; gap: 5px; }
+        .field-group label { font-size: 0.78rem; font-weight: 600; color: #374151; }
+        .field-group input, .field-group select {
+            padding: 10px 13px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.88rem; font-family: 'DM Sans', sans-serif; outline: none; background: #fafafa;
+        }
+        .field-group input:focus, .field-group select:focus { border-color: var(--accent); background: #fff; }
+        .btn-upload {
+            margin-top: 14px; width: 100%; padding: 11px; background: var(--accent); color: #fff;
+            border: none; border-radius: 8px; font-size: 0.92rem; font-family: 'DM Sans', sans-serif;
+            font-weight: 600; cursor: pointer;
+        }
+        .btn-upload:hover { background: var(--accent-dark); }
+
+        .cm-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;font-size:0.87rem;}
+        .cm-name{font-weight:600;color:#1a1a2e;margin-bottom:4px;}
+        .cm-text{color:#374151;line-height:1.6;margin-bottom:10px;}
+        .cm-votes{display:flex;gap:8px;}
+        .cm-vote{padding:3px 12px;border:1.5px solid #e5e7eb;border-radius:20px;background:none;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;color:#6b7280;}
+        .cm-vote.yes{border-color:#6ee7b7;color:#059669;background:#ecfdf5;}
+        .cm-vote.no{border-color:#fca5a5;color:#dc2626;background:#fef2f2;}
+        .cm-form{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-top:8px;}
+        .cm-form input,.cm-form textarea{width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.87rem;outline:none;box-sizing:border-box;margin-bottom:8px;}
+        .cm-form textarea{min-height:68px;resize:none;}
+        .cm-form button{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.87rem;cursor:pointer;}
+
+        .papers-section{display:none;margin-top:18px;}
+        .papers-section.show{display:block;}
+        .papers-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+        .papers-title{font-size:0.85rem;font-weight:700;color:#1a1a2e;}
+        .papers-filter{padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;outline:none;}
+        .paper-row{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+        .paper-info{font-size:0.87rem;color:#374151;}
+        .paper-info span{font-weight:600;color:#1a1a2e;}
+        .btn-view{padding:8px 16px;background:#10b981;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;}
+        .btn-view:hover{background:#059669;}
+
+        .solutions-box { animation: fadeIn 0.2s ease; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <span class="site-name">
+        📚 PaperSync <i class="fa-solid fa-people-group"></i>
+        &nbsp;·&nbsp;
+        <a href="http://127.0.0.1:5000/frontend" style="font-size:0.85rem;font-weight:600;color:#4f6ef7;text-decoration:none;">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </a>
+    </span>
+    <span class="user-info">Welcome, <span id="currentUsernameDisplay">Guest</span></span>
+</div>
+
+<div class="main">
+
+    <div class="not-found" id="notFound">
+        <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>
+        Subject not found. Please check the code and try again.
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="badge" id="resultBadge"></div>       
+        <div class="code" id="resultCode"></div>          
+        <div class="subject-name" id="resultName"></div> 
+        <div class="description" id="resultDesc"></div> 
+    </div>
+
+    <div class="upload-section" id="uploadSection">
+        <div class="upload-card">
+            <h3>Upload Answer — <span id="uploadSubjectLabel"></span></h3>
+            <div class="upload-fields">
+                <div class="field-group">
+                    <label>Answer Type</label>
+                    <select id="answerType">
+                        <option value="" disabled selected>Select type…</option>
+                        <option>Past Paper Answer</option>
+                        <option>Tutorial Solution</option>
+                        <option>Assignment Answer</option>
+                        <option>Study Notes</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Year & Trimester</label>
+                    <select id="answerYear">
+                        <option value="" disabled selected>Select year…</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>File</label>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.zip,.py" />
+                </div>
+            </div>
+            <button class="btn-upload" onclick="submitUpload()">Submit Answer</button>
+        </div>
+    </div>
+
+    <div class="papers-section" id="papersSection">
+        <div class="papers-header">
+            <div class="papers-title">Available Past Year Papers</div>
+            <select class="papers-filter" id="yearFilter" onchange="renderPapers()">
+                <option value="">All Years</option>
+            </select>
+        </div>
+        <div id="papersList"></div>
+    </div>
+
+</div>
+
+<script>
+    const currentUsername = sessionStorage.getItem('username');
+    if (!currentUsername) {
+        alert('Please log in first.');
+        window.location.href = '/';
+    } else {
+        document.getElementById('currentUsernameDisplay').textContent = currentUsername;
+    }
+
+    const params      = new URLSearchParams(window.location.search);
+    const subjectCode = params.get('code')?.toUpperCase();
+
+    const catMeta = {
+        all:   { badgeClass: "badge-other", badgeText: "General",     icon: "fa-border-all" },
+        math:  { badgeClass: "badge-math",  badgeText: "Mathematics", icon: "fa-square-root-variable" },
+        lang:  { badgeClass: "badge-lang",  badgeText: "Languages",   icon: "fa-language" },
+        sci:   { badgeClass: "badge-sci",   badgeText: "Science",     icon: "fa-flask" },
+        cs:    { badgeClass: "badge-cs",    badgeText: "Computing",   icon: "fa-microchip" },
+        media: { badgeClass: "badge-media", badgeText: "Multimedia",  icon: "fa-photo-film" },
+        biz:   { badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" },
+    };
+
+    if (!subjectCode) {
+        document.getElementById('notFound').classList.add('show');
+    } else {
+        loadSubject(subjectCode);
+    }
+
+    function loadSubject(code) {
+        fetch('/subjects')
+            .then(r => r.json())
+            .then(data => {
+                const subj = data.find(s => s.subject_code === code);
+                if (!subj) { document.getElementById('notFound').classList.add('show'); return; }
+
+                document.title = `PaperSync - ${code}`;
+
+                const meta = catMeta[subj.cat] || catMeta['all'];
+                document.getElementById('resultCode').textContent = code;
+                document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${subj.icon || 'fa-book'}" style="margin-right:7px;opacity:0.7;"></i>${subj.name}`;
+                document.getElementById('resultDesc').textContent = subj.desc || 'No description available.';
+
+                const badge = document.getElementById('resultBadge');
+                badge.className = `badge ${meta.badgeClass}`;
+                badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
+
+                document.getElementById('resultCard').classList.add('show');
+                document.getElementById('uploadSubjectLabel').textContent = code;
+                document.getElementById('uploadSection').classList.add('show');
+
+                if (subj.papers && subj.papers.length) {
+                    const filter = document.getElementById('yearFilter');
+                    const years  = [...new Set(subj.papers.map(p => p.year))].sort((a, b) => b - a);
+                    filter.innerHTML = '<option value="">All Years</option>' + years.map(y => `<option>${y}</option>`).join('');
+                    filter._papers = subj.papers;
+
+                    document.getElementById('answerYear').innerHTML =
+                        '<option value="" disabled selected>Select year…</option>' +
+                        subj.papers.map(p => `<option value="${p.paper_id}">${p.year} - ${p.trimester}</option>`).join('');
+
+                    document.getElementById('papersSection').classList.add('show');
+                    renderPapers();
+                }
+            })
+            .catch(() => document.getElementById('notFound').classList.add('show'));
+    }
+
+    function renderPapers() {
+        const filter   = document.getElementById('yearFilter');
+        const papers   = filter._papers || [];
+        const year     = filter.value;
+        const filtered = year ? papers.filter(p => p.year === year) : papers;
+        document.getElementById('papersList').innerHTML = filtered.map(p => `
+            <div class="paper-row">
+                <div class="paper-info">Year: <span>${p.year}</span> &nbsp;·&nbsp; Trimester: <span>${p.trimester}</span></div>
+                <button class="btn-view" onclick="toggleSolutions('${p.paper_id}')">View Solutions & Discuss</button>
+            </div>
+            <div class="solutions-box" id="sol-${p.paper_id}" style="display:none;"></div>`).join('');
+    }
+
+    function submitUpload() {
+        const type    = document.getElementById('answerType').value;
+        const file    = document.getElementById('fileInput').files[0];
+        const paperId = document.getElementById('answerYear').value;
+        if (!type || !file || !paperId) { alert('Please fill in all fields.'); return; }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('paper_id', paperId);
+        formData.append('uploader_username', currentUsername);
+        formData.append('uploader_id', currentUsername);
+        formData.append('answer_type', type);
+
+        fetch('/upload', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`"${file.name}" submitted! Thank you, ${currentUsername}.`);
+                    document.getElementById('answerType').value = '';
+                    document.getElementById('fileInput').value  = '';
+                    const box = document.getElementById('sol-' + paperId);
+                    if (box && box.style.display === 'block') loadSolutions(paperId);
+                } else {
+                    alert(data.message || 'Upload failed.');
+                }
+            })
+            .catch(() => alert('Upload failed. Please try again.'));
+    }
+
+    function toggleSolutions(paperId) {
+        const box = document.getElementById('sol-' + paperId);
+        if (box.style.display === 'block') { box.style.display = 'none'; return; }
+        box.style.display = 'block';
+        loadSolutions(paperId);
+    }
+
+    function loadSolutions(paperId) {
+        const box = document.getElementById('sol-' + paperId);
+        Promise.all([
+            fetch('/solutions?paper_id=' + paperId).then(r => r.json()),
+            fetch('/comments').then(r => r.json())
+        ]).then(([solutions, allComments]) => {
+            const comments = allComments.filter(c => c.paper === paperId || c.target_id === paperId);
+            const sortedSolutions = [...solutions].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+
+            const solsHtml = sortedSolutions.length ? sortedSolutions.map(s => `
+                <div class="cm-card" style="border-left:3px solid #10b981;">
+                    <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· Solution file</span></div>
+                    <div class="cm-text" style="font-family:'DM Mono',monospace;font-size:0.82rem;">${s.original_filename || s.filepath}</div>
+                    <div class="cm-votes">
+                        <a class="cm-vote" style="text-decoration:none;display:inline-flex;align-items:center;" href="/uploads/${encodeURIComponent(s.filepath)}" download>⬇️ Download</a>
+                        <button class="cm-vote ${(s.upvoted_by || []).includes(currentUsername) ? 'yes' : ''}" onclick="upvoteSolution('${s.solution_id}', '${paperId}')">👍 ${s.upvotes || 0}</button>
+                        <button class="cm-vote" onclick="flagSolution('${s.solution_id}', '${paperId}')">🚩 Flag (${s.flags || 0})</button>
+                    </div>
+                </div>`).join('') : '';
+
+            const cmtsHtml = comments.length ? comments.map(c => {
+                const myVote = (c.voters || {})[currentUsername];
+                return `
+                <div class="cm-card">
+                    <div class="cm-name">${c.user || c.username || 'Anonymous'}</div>
+                    <div class="cm-text">${c.text}</div>
+                    <div class="cm-votes">
+                        <button class="cm-vote ${myVote === 'upvote' ? 'yes' : ''}" onclick="voteSol('${c.id || c.comment_id}','upvote','${paperId}')">👍 ${c.upvotes || 0}</button>
+                        <button class="cm-vote ${myVote === 'downvote' ? 'no' : ''}" onclick="voteSol('${c.id || c.comment_id}','downvote','${paperId}')">👎 ${c.downvotes || 0}</button>
+                        <button class="cm-vote" onclick="flagComment('${c.id || c.comment_id}','${paperId}')">🚩 Flag</button>
+                    </div>
+                </div>`;
+            }).join('') : '<div style="font-size:0.85rem;color:#9ca3af;margin-bottom:10px;">No comments yet. Be the first!</div>';
+
+            box.innerHTML = `
+                <div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:0 0 10px 10px;padding:14px 18px;margin-top:-8px;margin-bottom:8px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Solutions</div>
+                    ${solsHtml || '<div style="font-size:0.85rem;color:#9ca3af;margin-bottom:10px;">No uploaded solutions yet.</div>'}
+                    <div style="font-size:0.78rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px;">Discussion</div>
+                    <div id="solList-${paperId}">${cmtsHtml}</div>
+                    <div class="cm-form" style="margin-top:10px;">
+                        <textarea id="solText-${paperId}" placeholder="Share your solution or comment…"></textarea>
+                        <button onclick="postSolution('${paperId}')">Post</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function voteSol(id, action, paperId) {
+        fetch('/vote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id, action, user: currentUsername })
+        }).then(() => loadSolutions(paperId));
+    }
+
+    function postSolution(paperId) {
+        const text = document.getElementById('solText-' + paperId).value.trim();
+        if (!text) { alert('Please enter a comment.'); return; }
+        fetch('/comment', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user: currentUsername, paper: paperId, text })
+        }).then(() => loadSolutions(paperId));
+    }
+
+    function upvoteSolution(solutionId, paperId) {
+        fetch('/solution/upvote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ solution_id: solutionId, user: currentUsername })
+        }).then(r => r.json()).then(data => {
+            if (data.success) loadSolutions(paperId);
+            else alert(data.message);
+        });
+    }
+
+    function flagSolution(solutionId, paperId) {
+        fetch('/flag/solution', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ solution_id: solutionId, user: currentUsername })
+        }).then(r => r.json()).then(data => {
+            if (data.success) { alert('Solution flagged for review.'); loadSolutions(paperId); }
+            else alert(data.message);
+        });
+    }
+
+    function flagComment(commentId, paperId) {
+        fetch('/flag/comment', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ comment_id: commentId, user: currentUsername })
+        }).then(r => r.json()).then(data => {
+            if (data.success) alert('Comment flagged for review.');
+            else alert(data.message);
+        });
+    }
+</script>
+</body>
+</html>

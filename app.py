@@ -42,6 +42,12 @@ def home():
 def frontend():
     with open("home.html", "r", encoding="utf-8") as f:
         return f.read()
+    
+# ================ SUBJECT PAGE ================ 
+@app.route('/subject')
+def subject_page():
+    with open("subject.html", "r", encoding="utf-8") as f:
+        return f.read()  
 
 # ================= SUBJECTS =================
 @app.route('/subjects')
