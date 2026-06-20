@@ -204,29 +204,43 @@ def get_paper(subject_id, paper_id):
                 return paper
     return None
 
-def add_subject(name, subject_code):
+def add_subject(name, subject_code, trimester, category):
     """Add a new subject."""
     subjects = read_json('subjects.json')
+    
+    # Generate sequential ID (e.g. "3")
+    new_id = str(len(subjects) + 1)
+    
     new_subject = {
-        "subject_id": str(uuid.uuid4()),
-        "name": name,
+        "subject_id": new_id,
+        "subject_name": name,
         "subject_code": subject_code,
+        "trimester": trimester,
+        "category": category,
         "papers": []
     }
     subjects.append(new_subject)
     write_json('subjects.json', subjects)
     return new_subject
 
-def add_paper_to_subject(subject_id, year, trimester):
+def add_paper_to_subject(subject_id, year, trimester, filepath=None):
     """Add a new past year paper to an existing subject."""
     subjects = read_json('subjects.json')
+    
+    # Generate sequential paper ID
+    total_papers = sum(len(s.get('papers', [])) for s in subjects)
+    new_paper_id = f"p{total_papers + 1}"
+    
     for subject in subjects:
-        if subject.get('subject_id') == subject_id:
+        if str(subject.get('subject_id')) == str(subject_id):
             new_paper = {
-                "paper_id": str(uuid.uuid4()),
+                "paper_id": new_paper_id,
                 "year": year,
                 "trimester": trimester
             }
+            if filepath:
+                new_paper["filepath"] = filepath
+                
             subject['papers'] = subject.get('papers', [])
             subject['papers'].append(new_paper)
             write_json('subjects.json', subjects)
@@ -249,7 +263,7 @@ def search_papers(year=None, trimester=None):
             if match:
                 # Attach subject info to the paper result for context
                 paper_copy = paper.copy()
-                paper_copy['subject_name'] = subject.get('name')
+                paper_copy['subject_name'] = subject.get('subject_name', subject.get('name'))
                 paper_copy['subject_code'] = subject.get('subject_code')
                 results.append(paper_copy)
                 

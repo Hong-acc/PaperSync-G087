@@ -520,14 +520,14 @@
 
     let subjects = {};
 
-fetch('/subjects')
+    fetch('/subjects')
     .then(res => res.json())
     .then(data => {
         data.forEach(subj => {
             subjects[subj.subject_code] = {
-                name: subj.name,
+                name: subj.name || subj.subject_name,
                 desc: subj.desc  || "No description available.",
-                cat:  subj.cat   || "cs",
+                cat:  subj.cat   || subj.category || "cs",
                 icon: subj.icon  || "fa-book"
             };
         });
@@ -540,7 +540,7 @@ fetch('/subjects')
         sci:   { label: "Science",      badgeClass: "badge-sci",   badgeText: "Science",     icon: "fa-flask" },
         cs:    { label: "Computing",    badgeClass: "badge-cs",    badgeText: "Computing",   icon: "fa-microchip" },
         media: { label: "Multimedia",   badgeClass: "badge-media", badgeText: "Multimedia",  icon: "fa-photo-film" },
-        biz:   { label: "Business",     badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" },
+        biz:   { label: "Business",     badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" }
     };
 
     let currentCat = null;
@@ -653,12 +653,21 @@ function renderPapers() {
   const papers = filter._papers || [];
   const year = filter.value;
   const filtered = year ? papers.filter(p => p.year === year) : papers;
-  document.getElementById('papersList').innerHTML = filtered.map(p => `
+  document.getElementById('papersList').innerHTML = filtered.map(p => {
+    let downloadBtn = '';
+    if (p.filepath) {
+        downloadBtn = `<button class="btn-view" style="background:#4f46e5; margin-right: 10px;" onclick="window.open('/download/${p.filepath}', '_blank')"><i class="fa-solid fa-file-pdf"></i> Download Paper</button>`;
+    }
+    return `
   <div class="paper-row">
-    <div class="paper-info">Year: <span>${p.year}</span> &nbsp;·&nbsp; Trimester: <span>${p.trimester}</span></div>
-    <button class="btn-view" onclick="toggleSolutions('${p.paper_id}')">View Solutions & Discuss</button>
+    <div class="paper-info">Year: <span>${p.year}</span> &nbsp;•&nbsp; Trimester: <span>${p.trimester}</span></div>
+    <div>
+        ${downloadBtn}
+        <button class="btn-view" onclick="toggleSolutions('${p.paper_id}')">View Solutions & Discuss</button>
+    </div>
   </div>
-  <div class="solutions-box" id="sol-${p.paper_id}" style="display:none;"></div>`).join('');
+  <div class="solutions-box" id="sol-${p.paper_id}" style="display:none;"></div>`;
+  }).join('');
 }
     function submitUpload() {
         const type = document.getElementById('answerType').value;
