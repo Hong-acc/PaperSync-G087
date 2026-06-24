@@ -12,5 +12,19 @@
         "user_email": "student@student.mmu.edu.my",
         "password_hash": "scrypt:32768:8:1$UsmBrTw4Ey6zLWeO$569d8814257d21bf1e5d6170fffed21479fffd2e5909c5bfd8b9a807234d5bbb904d231a6ad287a29ce023bb62edb6b53ae278ed7c7ba71501526b3affd688ce",
         "role": "student"
+    },
+    {
+        "user_id": "10373b4f-7cd3-4410-9a79-b69f7ba74172",
+        "username": "n",
+        "user_email": "h@mmu.edu.my",
+        "password_hash": "scrypt:32768:8:1$5JDah4zlxy5ztiZz$8dc535777033ad2cf83025fd63be47a8ab92a927e853a39cc4880e09701f2a697729763f0c1fc264dfeee8cb3e7eacecc405c598670d2bcc6b703ef4369b9bd4",
+        "role": "admin"
+    },
+    {
+        "user_id": "b19164f7-e197-4dca-b08f-465c67978454",
+        "username": "m",
+        "user_email": "tdt@kska",
+        "password_hash": "scrypt:32768:8:1$JxSQ0UNafOrJ001p$17d1089960d974fd93bc363d0bca41dfa366de2a4d62a91235420dc8ae52658de1e7e816f08d32406a87ee8bba1e9edc16535265b9617bbef69a3fbc8105922a",
+        "role": "student"
     }
 ]

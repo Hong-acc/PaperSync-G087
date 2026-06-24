@@ -116,11 +116,9 @@ def forgot_password():
 
     user = db.get_user_by_email(email)
 
-    # Always respond success-like message to avoid leaking which emails are registered.
     if user:
         token = reset_serializer.dumps({"user_id": user["user_id"], "email": email})
         reset_link = f"{request.host_url.rstrip('/')}/reset-password?token={token}"
-        # Simulate sending an email by logging the link to the server console.
         print(f"[PaperSync] Password reset link for {email}: {reset_link}")
 
     return jsonify({
@@ -246,7 +244,6 @@ def reply():
 
     for c in comments:
         if str(c.get("id")) == cid:
-
             c.setdefault("replies", [])
             c["replies"].append({
                 "user": user,
@@ -287,39 +284,27 @@ def admin_verify():
         user = db.get_user_by_email(login_input)
 
     if not user:
-        return jsonify({
-            "success": False,
-            "message": "Account not found"
-        }), 403
+        return jsonify({"success": False, "message": "Account not found"}), 403
 
     email = user.get("user_email", "").lower()
 
     if user.get("role") != "admin" or not email.endswith("@mmu.edu.my") or email.endswith("@student.mmu.edu.my"):
-        return jsonify({
-            "success": False,
-            "message": "Only admin email can access admin dashboard"
-        }), 403
+        return jsonify({"success": False, "message": "Only admin email can access admin dashboard"}), 403
 
     if not check_password_hash(user["password_hash"], password):
-        return jsonify({
-            "success": False,
-            "message": "Wrong password"
-        }), 403
+        return jsonify({"success": False, "message": "Wrong password"}), 403
 
     session["admin_verified"] = True
     session["admin_user_id"] = user.get("user_id")
 
-    return jsonify({
-        "success": True,
-        "message": "Admin verified"
-    })
+    return jsonify({"success": True, "message": "Admin verified"})
 
 @app.route('/admin-dashboard')
 @require_admin
 def admin_dashboard():
     with open("admin.html", "r", encoding="utf-8") as f:
         return f.read()
-    
+
 @app.route('/admin/stats')
 @require_admin
 def admin_stats():
@@ -336,7 +321,7 @@ def admin_stats():
         "solutions": len(solutions),
         "banned_users": sum(1 for u in users if u.get("status") == "banned")
     })
-   
+
 @app.route('/admin/flagged/solutions')
 @require_admin
 def admin_flagged_solutions():
@@ -444,7 +429,7 @@ def upload_solution():
 
     solution = db.add_solution(paper_id, uploader_id, uploader_username, unique_name, file.filename)
 
-    # Attach answer_type without modifying db.py's add_solution signature
+    # Patch answer_type without modifying db.py
     solutions = db.read_json("solutions.json")
     for s in solutions:
         if s.get("solution_id") == solution.get("solution_id"):
@@ -464,6 +449,7 @@ def download_solution(filename):
     download_name = match.get("original_filename", filename) if match else filename
     return send_from_directory(UPLOAD_DIR, filename, as_attachment=True, download_name=download_name)
 
+# ================= SOLUTION UPVOTE =================
 @app.route('/solution/upvote', methods=['POST'])
 def upvote_solution():
     data = request.get_json()
@@ -484,8 +470,9 @@ def flag_solution():
     result = db.update_solution_flags(str(data.get("solution_id")), user)
     if result:
         return jsonify({"success": True, "flags": result["flags"]})
-    return jsonify({"message": "Not found"}), 404 
+    return jsonify({"message": "Not found"}), 404
 
+# ================= ADMIN SUBJECT/PAPER =================
 @app.route('/admin/subject/add', methods=['POST'])
 @require_admin
 def admin_add_subject():
@@ -524,9 +511,10 @@ def admin_add_paper():
     paper = db.add_paper_to_subject(subject_id, year, trimester, filepath)
     if not paper:
         return "Subject not found", 404
-        
+
     return redirect('/admin-dashboard?success=paper_added')
 
+# ================= ADMIN USERS =================
 @app.route('/admin/users')
 @require_admin
 def admin_users():
@@ -561,9 +549,9 @@ def admin_unban_user():
     data = request.get_json()
     user_id = str(data.get("user_id"))
     db.update_user_status(user_id, "active")
-    return jsonify({"success": True})       
-    
-    # ================= RUN =================
+    return jsonify({"success": True})
+
+# ================= RUN =================
 if __name__ == "__main__":
     db.init_db()
     app.run(debug=True)

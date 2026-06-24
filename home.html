@@ -397,9 +397,12 @@
     <span class="site-name">📚 PaperSync <i class="fa-solid fa-people-group"></i> </span>
     <span class="user-info">
         Welcome, <span id="currentUsernameDisplay">Guest</span>
-        <button class="admin-btn" onclick="openAdminVerify()">
+        <button class="admin-btn" onclick="toggleAdminVerify()">
             <i class="fa-solid fa-gauge-high"></i>
             Admin
+        </button>
+        <button onclick="logout()" style="margin-left:8px;padding:6px 12px;border:none;border-radius:8px;background:#fee2e2;color:#dc2626;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
         </button>
     </span>
 </div>
@@ -524,7 +527,9 @@
     .then(res => res.json())
     .then(data => {
         data.forEach(subj => {
-            subjects[subj.subject_code] = {
+            const code = (subj.subject_code || "").trim().toUpperCase();
+            if (!code) return;
+            subjects[code] = {
                 name: subj.name || subj.subject_name,
                 desc: subj.desc  || "No description available.",
                 cat:  subj.cat   || subj.category || "cs",
@@ -606,7 +611,7 @@
 
         if (subjects[input]) {
             const s    = subjects[input];
-            const meta = catMeta[s.cat];
+            const meta = catMeta[s.cat] || catMeta['all'];
             document.getElementById('resultCode').textContent = input;
             document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
             document.getElementById('resultDesc').textContent = s.desc;
@@ -633,7 +638,7 @@
   fetch('/subjects')
     .then(r => r.json())
     .then(data => {
-      const subj = data.find(s => s.subject_code === code);
+      const subj = data.find(s => (s.subject_code || "").trim().toUpperCase() === code);
       if (!subj || !subj.papers) return;
       const filter = document.getElementById('yearFilter');
       const years = [...new Set(subj.papers.map(p => p.year))].sort((a,b) => b-a);
@@ -656,7 +661,7 @@ function renderPapers() {
   document.getElementById('papersList').innerHTML = filtered.map(p => {
     let downloadBtn = '';
     if (p.filepath) {
-        downloadBtn = `<button class="btn-view" style="background:#4f46e5; margin-right: 10px;" onclick="window.open('/uploads/${p.filepath}', '_blank')"><i class="fa-solid fa-file-pdf"></i> Download Paper</button>`;
+        downloadBtn = `<button class="btn-view" style="background:#4f46e5; margin-right: 10px;" onclick="window.open('/download/${p.filepath}', '_blank')"><i class="fa-solid fa-file-pdf"></i> Download Paper</button>`;
     }
     return `
   <div class="paper-row">
@@ -816,8 +821,14 @@ function flagComment(commentId, paperId) {
 
 
 
-function openAdminVerify() {
-    document.getElementById("adminVerifyBox").style.display = "block";
+function toggleAdminVerify() {
+    const box = document.getElementById("adminVerifyBox");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+function logout() {
+    sessionStorage.removeItem('username');
+    window.location.href = '/';
 }
 
 function verifyAdminIdentity() {
