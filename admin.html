@@ -372,6 +372,18 @@
         </section>
 
         <section class="section">
+            <h2><i class="fa-solid fa-trash" style="color:#dc2626;margin-right:7px;"></i> Manage Past Papers</h2>
+            <p style="margin-bottom:16px;">Select a subject to view and delete its past year papers.</p>
+            <div class="form-group">
+                <label>Select Subject</label>
+                <select id="managePaperSubjectSelect" style="padding:10px; width:100%; max-width:400px; box-sizing:border-box;" onchange="loadPapersForManage()">
+                    <option value="">-- Choose Subject --</option>
+                </select>
+            </div>
+            <div class="flag-list" id="managePapersList" style="margin-top:14px;"></div>
+        </section>
+
+        <section class="section">
             <h2>Live Data</h2>
             <p>
                 Live Data uses: JS loadAdminStats(), API GET /admin/stats, DB db.get_admin_stats().
@@ -446,19 +458,70 @@
 
         loadAdminStats();
 
+    let allSubjectsData = [];
+
     function loadSubjectsForAddPaper() {
         fetch('/subjects')
             .then(res => res.json())
             .then(data => {
+                allSubjectsData = data;
+
                 const select = document.getElementById('paperSubjectSelect');
                 select.innerHTML = '<option value="" disabled selected>-- Choose Subject --</option>';
+
+                const manageSelect = document.getElementById('managePaperSubjectSelect');
+                manageSelect.innerHTML = '<option value="">-- Choose Subject --</option>';
+
                 data.forEach(subj => {
                     const name = subj.subject_name || subj.name;
                     select.innerHTML += `<option value="${subj.subject_id}">${name} (${subj.subject_code})</option>`;
+                    manageSelect.innerHTML += `<option value="${subj.subject_id}">${name} (${subj.subject_code})</option>`;
                 });
             });
     }
     loadSubjectsForAddPaper();
+
+    function loadPapersForManage() {
+        const subjectId = document.getElementById('managePaperSubjectSelect').value;
+        const el = document.getElementById('managePapersList');
+        if (!subjectId) { el.innerHTML = ''; return; }
+
+        const subj = allSubjectsData.find(s => String(s.subject_id) === String(subjectId));
+        if (!subj || !subj.papers || !subj.papers.length) {
+            el.innerHTML = '<div class="empty-state">No papers found for this subject</div>';
+            return;
+        }
+
+        el.innerHTML = subj.papers.map(p => `
+            <div class="flag-item" id="paper-${p.paper_id}">
+                <div>
+                    <div class="flag-meta">Year: ${p.year} · Trimester: ${p.trimester}</div>
+                    <div class="flag-text">${p.filepath ? p.filepath : 'No blank paper file attached'}</div>
+                </div>
+                <div class="flag-actions">
+                    <button class="btn-sm btn-danger" onclick="deletePaper('${subjectId}','${p.paper_id}')">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function deletePaper(subjectId, paperId) {
+        if (!confirm('Delete this paper? This will also remove all associated solutions and comments.')) return;
+
+        fetch('/admin/paper/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ subject_id: subjectId, paper_id: paperId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`paper-${paperId}`)?.remove();
+            } else {
+                alert(data.message || 'Failed to delete paper.');
+            }
+        });
+    }
 
     function switchFlagTab(tab, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));

@@ -514,6 +514,31 @@ def admin_add_paper():
 
     return redirect('/admin-dashboard?success=paper_added')
 
+@app.route('/admin/paper/delete', methods=['POST'])
+@require_admin
+def admin_delete_paper():
+    data = request.get_json()
+    subject_id = str(data.get("subject_id"))
+    paper_id = str(data.get("paper_id"))
+
+    # 先拿到这个 paper 自己的文件(比如空白卷 PDF),等下一起删掉
+    paper = db.get_paper(subject_id, paper_id)
+    paper_filepath = paper.get("filepath") if paper else None
+
+    result = db.delete_paper(subject_id, paper_id)
+    if result is False:
+        return jsonify({"success": False, "message": "Paper not found"}), 404
+
+    # result 是被删掉的 solutions 的 filepath 列表
+    all_filepaths = result + ([paper_filepath] if paper_filepath else [])
+    for fp in all_filepaths:
+        try:
+            os.remove(os.path.join(UPLOAD_DIR, fp))
+        except OSError:
+            pass
+
+    return jsonify({"success": True, "deleted_files": len(all_filepaths)})
+
 # ================= ADMIN USERS =================
 @app.route('/admin/users')
 @require_admin
