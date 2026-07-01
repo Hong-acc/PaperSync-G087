@@ -207,7 +207,11 @@ def get_paper(subject_id, paper_id):
 def add_subject(name, subject_code, trimester, category):
     """Add a new subject."""
     subjects = read_json('subjects.json')
-    
+
+    for s in subjects:
+        if s.get("subject_code", "").strip().upper() == subject_code.strip().upper():
+            return False # Duplicate found! Block the upload.
+        
     # Generate sequential ID (e.g. "3")
     new_id = str(len(subjects) + 1)
     

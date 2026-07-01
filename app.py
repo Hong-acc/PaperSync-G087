@@ -452,7 +452,9 @@ def admin_add_subject():
     category = request.form.get("category")
     if not subject_code or not subject_name or not trimester or not category:
         return "Missing required fields", 400
-    db.add_subject(subject_name, subject_code, trimester, category)
+    success = db.add_subject(subject_name, subject_code, trimester, category)
+    if success is False:
+        return "Error: A subject with the exact smae code already exists!", 400
     return redirect('/admin-dashboard?success=subject_added')
 
 @app.route('/admin/paper/add', methods=['POST'])
