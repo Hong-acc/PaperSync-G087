@@ -419,6 +419,8 @@ def upload_solution():
     filepath = os.path.join(UPLOAD_DIR, unique_name)
     file.save(filepath)
     solution = db.add_solution(paper_id, uploader_id, uploader_username, unique_name, file.filename)
+
+    # Attach answer_type without modifying db.py's add_solution signature
     solutions = db.read_json("solutions.json")
     for s in solutions:
         if s.get("solution_id") == solution.get("solution_id"):
@@ -468,10 +470,12 @@ def admin_add_subject():
     subject_name = request.form.get("subject_name")
     trimester = request.form.get("trimester")
     category = request.form.get("category")
+
     if not subject_code or not subject_name or not trimester or not category:
         return "Missing required fields", 400
+
     db.add_subject(subject_name, subject_code, trimester, category)
-    return redirect('/admin-dashboard?success=subject_added')
+    return redirect('/admin-dashboard')
 
 @app.route('/admin/paper/add', methods=['POST'])
 @require_admin
@@ -479,8 +483,10 @@ def admin_add_paper():
     subject_id = request.form.get("subject_id")
     year = request.form.get("year")
     trimester = request.form.get("trimester")
+
     if not subject_id or not year or not trimester:
         return "Missing required fields", 400
+
     filepath = None
     if 'file' in request.files:
         file = request.files['file']
