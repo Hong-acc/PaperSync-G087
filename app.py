@@ -75,6 +75,9 @@ def signup():
     if not username or not email or not password:
         return jsonify({"message": "Missing fields"}), 400
 
+    if not (email.endswith("@student.mmu.edu.my") or email.endswith("@mmu.edu.my")):
+        return jsonify({"message": "Registration is strictly restricted to MMU emails ."}), 400
+
     user = db.add_user(username, email, password)
 
     if not user:
