@@ -1,35 +1,181 @@
 [
     {
         "subject_id": "1",
-        "subject_name": "Mathematic I",
-        "subject_code": "CMT1114",
+        "subject_name": "Program Design",
+        "subject_code": "CCP4114",
+        "trimester": "TRI 2",
+        "category": "cs",
         "papers": [
             {
-                "paper_id": "p1",
-                "year": "2023",
-                "trimester": "Tri 1"
-            },
-            {
-                "paper_id": "p2",
-                "year": "2023",
-                "trimester": "Tri 2"
-            },
-            {
-                "paper_id": "p4",
-                "year": "2024",
-                "trimester": "tri 1"
+                "paper_id": "p5",
+                "year": "2025",
+                "trimester": "TRI 2",
+                "filepath": "paper_be04aecc_0102_001.pdf"
             }
         ]
     },
     {
         "subject_id": "2",
-        "subject_name": "Problem Solving and Program Design",
-        "subject_code": "CSP1114",
+        "subject_name": "INTRODUCTION TO DIGITAL SYSTEM",
+        "subject_code": "CDS1114",
+        "trimester": "TRI 3",
+        "category": "cs",
+        "papers": [
+            {
+                "paper_id": "p5",
+                "year": "2026",
+                "trimester": "TRI 3",
+                "filepath": "paper_d048ac51_CDS1114-INTRODUCTION_TO_DIGITAL_SYSTEMS.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "3",
+        "subject_name": "MATHEMATICS I",
+        "subject_code": "CMT1114",
+        "trimester": "TRI 1",
+        "category": "math",
+        "papers": [
+            {
+                "paper_id": "p2",
+                "year": "2026",
+                "trimester": "TRI 1",
+                "filepath": "paper_c923efd9_0918_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "4",
+        "subject_name": "MATHEMATICS II",
+        "subject_code": "CMT1124",
+        "trimester": "TRI 2",
+        "category": "math",
         "papers": [
             {
                 "paper_id": "p3",
-                "year": "2023",
-                "trimester": "Tri 2"
+                "year": "2026",
+                "trimester": "TRI 2",
+                "filepath": "paper_24cc64af_0966_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "5",
+        "subject_name": "ACADEMIC ENGLISH",
+        "subject_code": "LAE1113",
+        "trimester": "TRI 3",
+        "category": "lang",
+        "papers": [
+            {
+                "paper_id": "p4",
+                "year": "2026",
+                "trimester": "TRI 3",
+                "filepath": "paper_3d1cddb9_0988_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "6",
+        "subject_name": "BUSINESS PLANNING TAXATION",
+        "subject_code": "BVX 6313",
+        "trimester": "TERM 2530",
+        "category": "biz",
+        "papers": [
+            {
+                "paper_id": "p6",
+                "year": "2026",
+                "trimester": "TRI 2",
+                "filepath": "paper_d2ee857c_1025_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "7",
+        "subject_name": "ADVANCED MANAGEMENT ACCOUNTING",
+        "subject_code": "BAC6434",
+        "trimester": "TERM 2539",
+        "category": "biz",
+        "papers": [
+            {
+                "paper_id": "p7",
+                "year": "2026",
+                "trimester": "TRI 3",
+                "filepath": "paper_b9dde859_1067_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "8",
+        "subject_name": "VIDEO PRODUCTION",
+        "subject_code": "MPD1013",
+        "trimester": "TRI 2",
+        "category": "media",
+        "papers": [
+            {
+                "paper_id": "p8",
+                "year": "2016/2017",
+                "trimester": "TRI 3",
+                "filepath": "paper_9700fba0_Video_Production_-_MPD_1013_41148.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "9",
+        "subject_name": "VISUAL EFFECT AND COMPOSITING",
+        "subject_code": "MAX2033",
+        "trimester": "TRI 1",
+        "category": "media",
+        "papers": [
+            {
+                "paper_id": "p9",
+                "year": "2016/2017",
+                "trimester": "TRI 1",
+                "filepath": "paper_1d2dc0c6_Visual_Effects_And_Compositing_-_MAX_2033_2016_-_2017.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "10",
+        "subject_name": "ESSENTIAL ENGLISH",
+        "subject_code": "LEE1113",
+        "trimester": "TERM 2530",
+        "category": "lang",
+        "papers": [
+            {
+                "paper_id": "p10",
+                "year": "2026",
+                "trimester": "TERM 2530",
+                "filepath": "paper_8761196c_1091_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "11",
+        "subject_name": "MANAGEMENT DECISION SCIENCE",
+        "subject_code": "GBB6263",
+        "trimester": "TERM 2530",
+        "category": "sci",
+        "papers": [
+            {
+                "paper_id": "p11",
+                "year": "2026",
+                "trimester": "TERM 2530",
+                "filepath": "paper_3bf31545_1072_001.pdf"
+            }
+        ]
+    },
+    {
+        "subject_id": "12",
+        "subject_name": "MANAGEMENT DECISION SCIENCE",
+        "subject_code": "BAQ6323",
+        "trimester": "TERM2520",
+        "category": "sci",
+        "papers": [
+            {
+                "paper_id": "p12",
+                "year": "2026",
+                "trimester": "TERM 2520",
+                "filepath": "paper_a30b2f82_0690_001.pdf"
             }
         ]
     }
