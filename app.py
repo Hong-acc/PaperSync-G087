@@ -54,35 +54,32 @@ def get_subjects():
 def search():
     keyword = request.args.get("q", "").lower()
     papers = db.read_json("subjects.json")
-
     results = [
         p for p in papers
         if keyword in p.get("subject_name", "").lower()
         or keyword in p.get("subject_code", "").lower()
     ]
-
     return jsonify(results)
 
 # ================= SIGNUP =================
 @app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-
     username = data.get("username", "").strip()
     email = data.get("email", "").strip()
     password = data.get("password", "").strip()
-
     if not username or not email or not password:
         return jsonify({"message": "Missing fields"}), 400
+    
+    if not (email.endswith("@student.mmu.edu.my") or email.endswith("@mmu.edu.my")):
+        return jsonify({"message": "Registration is strictly restricted to MMU emails ."}), 400
 
     if not (email.endswith("@student.mmu.edu.my") or email.endswith("@mmu.edu.my")):
         return jsonify({"message": "Registration is strictly restricted to MMU emails ."}), 400
 
     user = db.add_user(username, email, password)
-
     if not user:
         return jsonify({"message": "User already exists"}), 400
-
     return jsonify({"message": "Signup success"})
 
 # ================= LOGIN =================
@@ -91,21 +88,17 @@ def login():
     data = request.get_json()
     login_input = data.get("username", "")
     password = data.get("password", "")
-
     user = db.get_user_by_username(login_input)
     if not user:
         user = db.get_user_by_email(login_input)
-
     if user and check_password_hash(user["password_hash"], password):
         if user.get("status") == "banned":
             return jsonify({"message": "Your account has been banned.", "success": False}), 403
-
         return jsonify({
             "message": "Login success",
             "success": True,
             "user": {"user_id": user["user_id"], "username": user["username"]}
         })
-
     return jsonify({"message": "Invalid login", "success": False})
 
 # ================= FORGOT PASSWORD =================
@@ -113,21 +106,14 @@ def login():
 def forgot_password():
     data = request.get_json()
     email = data.get("email", "").strip()
-
     if not email:
         return jsonify({"success": False, "message": "Email is required"}), 400
-
     user = db.get_user_by_email(email)
-
     if user:
         token = reset_serializer.dumps({"user_id": user["user_id"], "email": email})
         reset_link = f"{request.host_url.rstrip('/')}/reset-password?token={token}"
         print(f"[PaperSync] Password reset link for {email}: {reset_link}")
-
-    return jsonify({
-        "success": True,
-        "message": "If an account with that email exists, a password reset link has been sent."
-    })
+    return jsonify({"success": True, "message": "If an account with that email exists, a password reset link has been sent."})
 
 # ================= RESET PASSWORD =================
 @app.route('/reset-password', methods=['GET'])
@@ -140,17 +126,14 @@ def reset_password_submit():
     data = request.get_json()
     token = data.get("token", "").strip()
     new_password = data.get("password", "").strip()
-
     if not token or not new_password:
         return jsonify({"success": False, "message": "Missing fields"}), 400
-
     try:
         payload = reset_serializer.loads(token, max_age=RESET_TOKEN_MAX_AGE)
     except SignatureExpired:
         return jsonify({"success": False, "message": "Reset link has expired"}), 400
     except BadSignature:
         return jsonify({"success": False, "message": "Invalid reset link"}), 400
-
     user_id = payload.get("user_id")
     users = db.read_json("users.json")
     for u in users:
@@ -158,21 +141,16 @@ def reset_password_submit():
             u["password_hash"] = generate_password_hash(new_password)
             db.write_json("users.json", users)
             return jsonify({"success": True, "message": "Password reset successful"})
-
     return jsonify({"success": False, "message": "Account not found"}), 400
 
 # ================= COMMENT =================
 @app.route('/comment', methods=['POST'])
 def comment():
     data = request.get_json()
-
     user = data.get("user", "").strip()
-
     if not user or user in ["undefined", "null"]:
         return jsonify({"message": "Not logged in"}), 401
-
     comments = db.read_json("comments.json")
-
     comments.append({
         "id": str(len(comments) + 1),
         "user": user,
@@ -182,124 +160,131 @@ def comment():
         "voters": {},
         "replies": []
     })
-
     db.write_json("comments.json", comments)
-
     return jsonify({"message": "Comment added"})
 
 # ================= VOTE =================
 @app.route('/vote', methods=['POST'])
 def vote():
     data = request.get_json()
-
     cid = str(data.get("id"))
     action = data.get("action")
     user = data.get("user", "")
-
     if not user or user in ["undefined", "null"]:
         return jsonify({"message": "Not logged in"}), 401
-
     comments = db.read_json("comments.json")
-
     for c in comments:
         if str(c.get("id")) != cid:
             continue
-
         c.setdefault("voters", {})
-
         previous = c["voters"].get(user)
-
         if previous == action:
-            # Toggle off: remove the vote entirely
             del c["voters"][user]
         else:
             c["voters"][user] = action
-
         upvotes = sum(1 for v in c["voters"].values() if v == "upvote")
         downvotes = sum(1 for v in c["voters"].values() if v == "downvote")
-
         c["upvotes"] = upvotes
         c["downvotes"] = downvotes
         c["votes"] = upvotes - downvotes
-
         db.write_json("comments.json", comments)
-
-        return jsonify({
-            "message": "Vote updated",
-            "votes": c["votes"],
-            "upvotes": upvotes,
-            "downvotes": downvotes
-        })
-
+        return jsonify({"message": "Vote updated", "votes": c["votes"], "upvotes": upvotes, "downvotes": downvotes})
     return jsonify({"message": "Not found"}), 404
 
 # ================= REPLY =================
 @app.route('/reply', methods=['POST'])
 def reply():
     data = request.get_json()
-
     user = data.get("user", "")
     if not user or user in ["undefined", "null"]:
         return jsonify({"message": "Not logged in"}), 401
-
     cid = str(data.get("id"))
     comments = db.read_json("comments.json")
-
     for c in comments:
         if str(c.get("id")) == cid:
             c.setdefault("replies", [])
-            c["replies"].append({
-                "user": user,
-                "text": data.get("text", "")
-            })
-
+            c["replies"].append({"user": user, "text": data.get("text", "")})
             db.write_json("comments.json", comments)
             return jsonify({"message": "Reply added"})
-
     return jsonify({"message": "Not found"}), 404
 
 # ================= GET COMMENTS =================
 @app.route('/comments')
 def get_comments():
     comments = db.read_json("comments.json")
-
     for c in comments:
         c.setdefault("voters", {})
         c.setdefault("replies", [])
         c["upvotes"] = sum(1 for v in c["voters"].values() if v == "upvote")
         c["downvotes"] = sum(1 for v in c["voters"].values() if v == "downvote")
         c["votes"] = c["upvotes"] - c["downvotes"]
-
     comments.sort(key=lambda x: x.get("votes", 0), reverse=True)
-
     return jsonify(comments)
+
+# ================= USER DELETE OWN CONTENT =================
+@app.route('/solution/delete', methods=['POST'])
+def user_delete_solution():
+    data = request.get_json()
+    solution_id = str(data.get("solution_id"))
+    username = data.get("user", "").strip()
+    if not username or username in ["undefined", "null"]:
+        return jsonify({"success": False, "message": "Not logged in"}), 401
+
+    solution = db.get_solution_by_id(solution_id)
+    if not solution:
+        return jsonify({"success": False, "message": "Solution not found"}), 404
+
+    # Allow delete if uploader_username matches (simpler, since we store username)
+    if solution.get("uploader_username") != username:
+        return jsonify({"success": False, "message": "You can only delete your own solutions"}), 403
+
+    user = db.get_user_by_username(username)
+    result = db.delete_solution(solution_id, role="admin")
+    if result:
+        try:
+            os.remove(os.path.join(UPLOAD_DIR, solution["filepath"]))
+        except OSError:
+            pass
+        return jsonify({"success": True})
+    return jsonify({"success": False, "message": "Could not delete"}), 400
+
+@app.route('/comment/delete', methods=['POST'])
+def user_delete_comment():
+    data = request.get_json()
+    comment_id = str(data.get("comment_id"))
+    username = data.get("user", "").strip()
+    if not username or username in ["undefined", "null"]:
+        return jsonify({"success": False, "message": "Not logged in"}), 401
+
+    comments = db.read_json("comments.json")
+    target = next((c for c in comments if str(c.get("id", c.get("comment_id", ""))) == comment_id), None)
+    if not target:
+        return jsonify({"success": False, "message": "Comment not found"}), 404
+    if target.get("user") != username and target.get("username") != username:
+        return jsonify({"success": False, "message": "You can only delete your own comments"}), 403
+
+    comments = [c for c in comments if str(c.get("id", c.get("comment_id", ""))) != comment_id]
+    db.write_json("comments.json", comments)
+    return jsonify({"success": True})
 
 # ================= ADMIN VERIFY =================
 @app.route('/admin/verify', methods=['POST'])
 def admin_verify():
     data = request.get_json()
-
     login_input = data.get("username", "").strip()
     password = data.get("password", "")
-
     user = db.get_user_by_username(login_input)
     if not user:
         user = db.get_user_by_email(login_input)
-
     if not user:
         return jsonify({"success": False, "message": "Account not found"}), 403
-
     email = user.get("user_email", "").lower()
-
     if user.get("role") != "admin" or not email.endswith("@mmu.edu.my") or email.endswith("@student.mmu.edu.my"):
         return jsonify({"success": False, "message": "Only admin email can access admin dashboard"}), 403
-
     if not check_password_hash(user["password_hash"], password):
         return jsonify({"success": False, "message": "Wrong password"}), 403
-
     session["admin_verified"] = True
     session["admin_user_id"] = user.get("user_id")
-
     return jsonify({"success": True, "message": "Admin verified"})
 
 @app.route('/admin-dashboard')
@@ -315,7 +300,6 @@ def admin_stats():
     subjects = db.read_json("subjects.json")
     comments = db.read_json("comments.json")
     solutions = db.read_json("solutions.json")
-
     return jsonify({
         "users": len(users),
         "subjects": len(subjects),
@@ -329,15 +313,13 @@ def admin_stats():
 @require_admin
 def admin_flagged_solutions():
     solutions = db.read_json("solutions.json")
-    flagged = [s for s in solutions if s.get("flags", 0) > 0]
-    return jsonify(flagged)
+    return jsonify([s for s in solutions if s.get("flags", 0) > 0])
 
 @app.route('/admin/flagged/comments')
 @require_admin
 def admin_flagged_comments():
     comments = db.read_json("comments.json")
-    flagged = [c for c in comments if c.get("flags", 0) > 0]
-    return jsonify(flagged)
+    return jsonify([c for c in comments if c.get("flags", 0) > 0])
 
 @app.route('/admin/flag/dismiss', methods=['POST'])
 @require_admin
@@ -345,7 +327,6 @@ def admin_flag_dismiss():
     data = request.get_json()
     content_type = data.get("type")
     content_id = str(data.get("id"))
-
     if content_type == "solution":
         solutions = db.read_json("solutions.json")
         for s in solutions:
@@ -353,14 +334,12 @@ def admin_flag_dismiss():
                 s["flags"] = 0
                 s["flagged_by"] = []
         db.write_json("solutions.json", solutions)
-
     elif content_type == "comment":
         comments = db.read_json("comments.json")
         for c in comments:
             if str(c.get("comment_id", c.get("id", ""))) == content_id:
                 c["flags"] = 0
         db.write_json("comments.json", comments)
-
     return jsonify({"success": True})
 
 @app.route('/admin/solution/delete', methods=['POST'])
@@ -383,7 +362,6 @@ def flag_comment():
     user = data.get("user", "")
     if not user or user in ["undefined", "null"]:
         return jsonify({"message": "Not logged in"}), 401
-
     comment_id = str(data.get("comment_id"))
     comments = db.read_json("comments.json")
     for c in comments:
@@ -392,7 +370,6 @@ def flag_comment():
             c["flags"] += 1
             db.write_json("comments.json", comments)
             return jsonify({"success": True})
-
     return jsonify({"message": "Not found"}), 404
 
 @app.route('/solutions')
@@ -410,29 +387,20 @@ def upload_solution():
     uploader_username = request.form.get("uploader_username", "").strip()
     uploader_id = request.form.get("uploader_id", "").strip() or "anonymous"
     answer_type = request.form.get("answer_type", "").strip() or "Solution"
-
     if not paper_id or not uploader_username:
         return jsonify({"success": False, "message": "Missing fields"}), 400
-
     if 'file' not in request.files:
         return jsonify({"success": False, "message": "No file provided"}), 400
-
     file = request.files['file']
-
     if file.filename == '':
         return jsonify({"success": False, "message": "No file selected"}), 400
-
     if not allowed_file(file.filename):
         return jsonify({"success": False, "message": "File type not allowed"}), 400
-
     safe_name = secure_filename(file.filename)
     unique_name = f"{uuid.uuid4().hex}_{safe_name}"
     filepath = os.path.join(UPLOAD_DIR, unique_name)
     file.save(filepath)
-
     solution = db.add_solution(paper_id, uploader_id, uploader_username, unique_name, file.filename)
-
-    # Patch answer_type without modifying db.py
     solutions = db.read_json("solutions.json")
     for s in solutions:
         if s.get("solution_id") == solution.get("solution_id"):
@@ -440,7 +408,6 @@ def upload_solution():
             solution = s
             break
     db.write_json("solutions.json", solutions)
-
     return jsonify({"success": True, "message": "Upload successful", "solution": solution})
 
 # ================= DOWNLOAD SOLUTION =================
@@ -483,10 +450,8 @@ def admin_add_subject():
     subject_name = request.form.get("subject_name")
     trimester = request.form.get("trimester")
     category = request.form.get("category")
-
     if not subject_code or not subject_name or not trimester or not category:
         return "Missing required fields", 400
-
     db.add_subject(subject_name, subject_code, trimester, category)
     return redirect('/admin-dashboard?success=subject_added')
 
@@ -496,10 +461,8 @@ def admin_add_paper():
     subject_id = request.form.get("subject_id")
     year = request.form.get("year")
     trimester = request.form.get("trimester")
-
     if not subject_id or not year or not trimester:
         return "Missing required fields", 400
-
     filepath = None
     if 'file' in request.files:
         file = request.files['file']
@@ -510,11 +473,9 @@ def admin_add_paper():
             unique_name = f"paper_{uuid.uuid4().hex[:8]}_{safe_name}"
             file.save(os.path.join(UPLOAD_DIR, unique_name))
             filepath = unique_name
-
     paper = db.add_paper_to_subject(subject_id, year, trimester, filepath)
     if not paper:
         return "Subject not found", 404
-
     return redirect('/admin-dashboard?success=paper_added')
 
 @app.route('/admin/paper/delete', methods=['POST'])
@@ -523,51 +484,42 @@ def admin_delete_paper():
     data = request.get_json()
     subject_id = str(data.get("subject_id"))
     paper_id = str(data.get("paper_id"))
-
-    # 先拿到这个 paper 自己的文件(比如空白卷 PDF),等下一起删掉
     paper = db.get_paper(subject_id, paper_id)
     paper_filepath = paper.get("filepath") if paper else None
-
     result = db.delete_paper(subject_id, paper_id)
     if result is False:
         return jsonify({"success": False, "message": "Paper not found"}), 404
-
-    # result 是被删掉的 solutions 的 filepath 列表
     all_filepaths = result + ([paper_filepath] if paper_filepath else [])
     for fp in all_filepaths:
         try:
             os.remove(os.path.join(UPLOAD_DIR, fp))
         except OSError:
             pass
-
-    return jsonify({"success": True, "deleted_files": len(all_filepaths)})
+    return jsonify({"success": True})
 
 # ================= ADMIN USERS =================
 @app.route('/admin/users')
 @require_admin
 def admin_users():
     users = db.read_json("users.json")
-    safe_users = [{
+    return jsonify([{
         "user_id": u.get("user_id"),
         "username": u.get("username"),
         "user_email": u.get("user_email"),
         "role": u.get("role"),
         "status": u.get("status", "active")
-    } for u in users]
-    return jsonify(safe_users)
+    } for u in users])
 
 @app.route('/admin/user/ban', methods=['POST'])
 @require_admin
 def admin_ban_user():
     data = request.get_json()
     user_id = str(data.get("user_id"))
-
     user = db.get_user_by_id(user_id)
     if not user:
         return jsonify({"success": False, "message": "User not found"}), 404
     if user.get("role") == "admin":
         return jsonify({"success": False, "message": "Cannot ban admin"}), 403
-
     db.update_user_status(user_id, "banned")
     return jsonify({"success": True})
 

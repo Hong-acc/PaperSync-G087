@@ -729,7 +729,9 @@ function loadSolutions(paperId) {
 
     const sortedSolutions = [...solutions].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
 
-    const solsHtml = sortedSolutions.length ? sortedSolutions.map(s => `
+    const solsHtml = sortedSolutions.length ? sortedSolutions.map(s => {
+      const isOwner = s.uploader_username === currentUsername;
+      return `
       <div class="cm-card" style="border-left:3px solid #10b981;">
         <div class="cm-name">📄 ${s.uploader_username || 'Anonymous'} <span style="font-weight:400;color:#9ca3af;font-size:0.78rem;">· ${s.answer_type || 'Solution'}</span></div>
         <div class="cm-text" style="font-family:'DM Mono',monospace;font-size:0.82rem;">${s.original_filename || s.filepath}</div>
@@ -737,19 +739,25 @@ function loadSolutions(paperId) {
           <a class="cm-vote" style="text-decoration:none;display:inline-flex;align-items:center;" href="/uploads/${encodeURIComponent(s.filepath)}" download>⬇️ Download</a>
           <button class="cm-vote ${(s.upvoted_by || []).includes(currentUsername) ? 'yes' : ''}" onclick="upvoteSolution('${s.solution_id}', '${paperId}')">👍 ${s.upvotes || 0}</button>
           <button class="cm-vote" onclick="flagSolution('${s.solution_id}', '${paperId}')">🚩 Flag (${s.flags || 0})</button>
+          ${isOwner ? `<button class="cm-vote no" onclick="deleteSolution('${s.solution_id}', '${paperId}')">🗑️ Delete</button>` : ''}
         </div>
-      </div>`).join('') : '';
+      </div>`;
+    }).join('') : '';
 
     const cmtsHtml = comments.length ? comments.map(c => {
       const myVote = (c.voters || {})[currentUsername];
+      const cid = c.id || c.comment_id;
+      const owner = c.user || c.username;
+      const isOwner = owner === currentUsername;
       return `
       <div class="cm-card">
-        <div class="cm-name">${c.user || c.username || 'Anonymous'}</div>
+        <div class="cm-name">${owner || 'Anonymous'}</div>
         <div class="cm-text">${c.text}</div>
         <div class="cm-votes">
-          <button class="cm-vote ${myVote === 'upvote' ? 'yes' : ''}" onclick="voteSol('${c.id || c.comment_id}','upvote','${paperId}')">👍 ${c.upvotes || 0}</button>
-          <button class="cm-vote ${myVote === 'downvote' ? 'no' : ''}" onclick="voteSol('${c.id || c.comment_id}','downvote','${paperId}')">👎 ${c.downvotes || 0}</button>
-          <button class="cm-vote" onclick="flagComment('${c.id || c.comment_id}','${paperId}')">🚩 Flag</button>
+          <button class="cm-vote ${myVote === 'upvote' ? 'yes' : ''}" onclick="voteSol('${cid}','upvote','${paperId}')">👍 ${c.upvotes || 0}</button>
+          <button class="cm-vote ${myVote === 'downvote' ? 'no' : ''}" onclick="voteSol('${cid}','downvote','${paperId}')">👎 ${c.downvotes || 0}</button>
+          <button class="cm-vote" onclick="flagComment('${cid}','${paperId}')">🚩 Flag</button>
+          ${isOwner ? `<button class="cm-vote no" onclick="deleteComment('${cid}', '${paperId}')">🗑️ Delete</button>` : ''}
         </div>
       </div>`;
     }).join('') : '<div style="font-size:0.85rem;color:#9ca3af;margin-bottom:10px;">No comments yet. Be the first!</div>';
@@ -767,7 +775,6 @@ function loadSolutions(paperId) {
       </div>`;
   });
 }
-
 function voteSol(id, action, paperId) {
   fetch('/vote', {
     method: 'POST',
@@ -819,7 +826,29 @@ function flagComment(commentId, paperId) {
   });
 }
 
+function deleteSolution(solutionId, paperId) {
+  if (!confirm('Delete this solution? This cannot be undone.')) return;
+  fetch('/solution/delete', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ solution_id: solutionId, user: currentUsername })
+  }).then(r => r.json()).then(data => {
+    if (data.success) loadSolutions(paperId);
+    else alert(data.message || 'Could not delete solution.');
+  });
+}
 
+function deleteComment(commentId, paperId) {
+  if (!confirm('Delete this comment? This cannot be undone.')) return;
+  fetch('/comment/delete', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ comment_id: commentId, user: currentUsername })
+  }).then(r => r.json()).then(data => {
+    if (data.success) loadSolutions(paperId);
+    else alert(data.message || 'Could not delete comment.');
+  });
+}
 
 function toggleAdminVerify() {
     const box = document.getElementById("adminVerifyBox");
