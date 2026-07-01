@@ -302,6 +302,8 @@ document.getElementById("loginForm").addEventListener("submit", function(event) 
     .then(data => {
         if (data.success) {
             sessionStorage.setItem("username", data.user.username);
+            sessionStorage.setItem("user_email", data.user.user_email || "");
+            sessionStorage.setItem("role", data.user.role || "");
             window.location.href = "/frontend";
         } else {
             alert(data.message || "Invalid username or password");
