@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+    /* ================= GLOBAL RESET ================= */
     <style>
         * {
             box-sizing: border-box;
@@ -22,6 +23,7 @@
             min-height: 100vh;
         }
 
+        /* ================= TOP BAR (brand + back button) ================= */
         .admin-top {
             background: #ffffff;
             border-bottom: 1px solid #e5e7eb;
@@ -48,6 +50,7 @@
             cursor: pointer;
         }
 
+        /* ================= DASHBOARD LAYOUT ================= */
         .dashboard {
             max-width: 1100px;
             margin: 32px auto;
@@ -87,6 +90,7 @@
             gap: 16px;
         }
 
+        /* ================= STATS CARDS ================= */
         .stat-card {
             background: #ffffff;
             border: 1px solid #e5e7eb;
@@ -182,6 +186,7 @@
             }
         }
 
+/* ================= FLAGGED CONTENT TABS ================= */
 .tab-nav {
     display: flex;
     gap: 6px;
@@ -210,6 +215,7 @@
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
+/* FLAG ITEM AND USER MANAGEMENT */
 .flag-list { display: flex; flex-direction: column; gap: 10px; }
 
 .flag-item {
@@ -280,7 +286,8 @@
     <h2><i class="fa-solid fa-flag" style="color:#dc2626;margin-right:7px;"></i>Flagged Content</h2>
     <p style="margin-bottom:16px;">Review reported solutions and comments.</p>
 
-<div class="tab-nav">
+<!-- ================= FLAGGED CONTENT TABS ================= -->
+    <div class="tab-nav">
     <button class="tab-btn active" onclick="switchFlagTab('solutions', this)">
         <i class="fa-solid fa-file-lines"></i> Flagged Solutions
     </button>
@@ -292,14 +299,17 @@
     </button>
 </div>
 
+<!-- ================= FLAGGED SOLUTIONS TAB ================= -->
 <div class="tab-panel active" id="flagTab-solutions">
     <div class="flag-list" id="flaggedSolutionsList"></div>
 </div>
 
+<!-- ================= FLAGGED COMMENTS TAB ================= -->
 <div class="tab-panel" id="flagTab-comments">
     <div class="flag-list" id="flaggedCommentsList"></div>
 </div>
 
+<!-- ================= USER MANAGEMENT TAB ================= -->
 <div class="tab-panel" id="flagTab-users">
     <div class="flag-list" id="usersList"></div>
 </div>
@@ -402,6 +412,7 @@
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
+        // ================= DASHBOARD STATS ================= 
         function loadAdminStats() {
             fetch("/admin/stats")
                 .then(response => {
@@ -460,6 +471,7 @@
 
     let allSubjectsData = [];
 
+    // ================= ADD SUBJECT / PAPER ================= 
     function loadSubjectsForAddPaper() {
         fetch('/subjects')
             .then(res => res.json())
@@ -481,6 +493,7 @@
     }
     loadSubjectsForAddPaper();
 
+    // ================= MANAGE PAPERS (list & delete) ================= 
     function loadPapersForManage() {
         const subjectId = document.getElementById('managePaperSubjectSelect').value;
         const el = document.getElementById('managePapersList');
@@ -523,6 +536,7 @@
         });
     }
 
+    // ================= FLAGGED CONTENT MODERATION ================= 
     function switchFlagTab(tab, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -530,6 +544,7 @@
     document.getElementById('flagTab-' + tab).classList.add('active');
 }
 
+// ================= FLAGGED CONTENT MODERATION ================= 
 function loadFlaggedContent() {
     fetch("/admin/flagged/solutions")
         .then(r => r.json())
@@ -576,6 +591,7 @@ function loadFlaggedContent() {
         });
 }
 
+// ================= FLAGGED CONTENT MODERATION ================= 
 function dismissFlag(type, id) {
     fetch("/admin/flag/dismiss", {
         method: "POST",
@@ -587,6 +603,7 @@ function dismissFlag(type, id) {
     });
 }
 
+// ================= FLAGGED CONTENT MODERATION ================= 
 function deleteContent(type, id) {
     if (!confirm(`Delete this ${type}?`)) return;
     fetch(`/admin/${type}/delete`, {
@@ -599,6 +616,7 @@ function deleteContent(type, id) {
     });
 }
 
+// ================= USER MANAGEMENT ================= 
 function loadUsers() {
     fetch("/admin/users")
         .then(r => r.json())
@@ -626,6 +644,7 @@ function loadUsers() {
         });
 }
 
+// ================= USER MANAGEMENT ================= 
 function banUser(userId) {
     if (!confirm("Ban this user?")) return;
     fetch("/admin/user/ban", {

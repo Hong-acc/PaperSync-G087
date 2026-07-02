@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <style>
+        /* ================= GLOBAL RESET & ROOT VARIABLES ================= */
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
@@ -23,6 +24,7 @@
             --cat-biz: #f97316;       
         }
         
+       /* ================= BASE BODY STYLE ================= */
         body {
     font-family: 'DM Sans', Arial, sans-serif;
     background: #cde4fb;
@@ -31,7 +33,7 @@
 }
 
 
-       
+       /* ================= TOP BAR (header: logo, admin/logout buttons) ================= */
         .top-bar {
             background: rgba(255,255,255,0.92); 
             backdrop-filter: blur(12px);        
@@ -49,6 +51,7 @@
         .top-bar .user-info { font-size: 0.85rem; color: #6b7280; font-weight: 500; }
 
 
+        /* ================= CATEGORY NAV BAR (All/Math/Lang/... buttons) ================= */
         .cat-nav {
             background: rgba(255,255,255,0.88);
             backdrop-filter: blur(10px);
@@ -115,6 +118,7 @@
         .cat-btn[data-cat="biz"].active   { color: var(--cat-biz);   border-color: var(--cat-biz);  }
 
 
+        /* ================= SUBJECT GRID (category browse chips) ================= */
         .subject-grid-wrapper {
             max-width: 760px;
             margin: 0 auto;
@@ -209,6 +213,7 @@
         .search-row button:hover { background: var(--accent-dark); }
 
 
+        /* ================= SEARCH RESULT CARD ================= */
         .result-card {
             background: #fff;
             border: 1.5px solid #e5e7eb;
@@ -254,7 +259,11 @@
             border-radius: 8px;
             font-weight: 500;
         }
+        
+        /* ================= SEARCH "NOT FOUND" MESSAGE ================= */
         .not-found.show { display: block; }
+        
+        /* ================= UPLOAD ANSWER SECTION ================= */
         .upload-section { display: none; margin-top: 18px; }
 .upload-section.show { display: block; }
 .upload-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 22px 24px; }
@@ -273,6 +282,8 @@
     font-weight: 600; cursor: pointer;
 }
 .btn-upload:hover { background: var(--accent-dark); }
+
+/* ================= COMMENTS & SOLUTIONS STYLING ================= */
 .comment-section{display:none;margin-top:24px;}
 .comment-section.show{display:block;}
 .cm-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:8px;font-size:0.87rem;}
@@ -286,6 +297,7 @@
 .cm-form input,.cm-form textarea{width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.87rem;outline:none;box-sizing:border-box;margin-bottom:8px;}
 .cm-form textarea{min-height:68px;resize:none;}
 .cm-form button{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.87rem;cursor:pointer;}
+/* ================= PAST PAPERS LIST ================= */
 .papers-section{display:none;margin-top:18px;}
 .papers-section.show{display:block;}
 .papers-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -299,6 +311,7 @@
 
 .solutions-box { animation: fadeIn 0.2s ease; }
 
+/* ================= ADMIN VERIFY MODAL (password prompt) ================= */
 .admin-verify-box {
     display: none;
     width: 100%;
@@ -356,6 +369,7 @@
     </style>
 </head>
 <body>
+    <!-- ================= ADMIN VERIFY MODAL ================= -->
     <div id="adminVerifyBox" class="admin-verify-box">
     <div class="admin-verify-card">
 
@@ -375,6 +389,7 @@
         </p>
     </div>
 </div>
+<!-- ================= TOP BAR ================= -->
 <div class="top-bar">
     <span class="site-name">📚 PaperSync <i class="fa-solid fa-people-group"></i> </span>
     <span class="user-info">
@@ -389,6 +404,7 @@
     </span>
 </div>
  
+<!-- ================= CATEGORY NAV ================= -->
 <nav class="cat-nav" id="catNav">
     <button class="cat-btn" data-cat="all">
         <span class="cat-icon"><i class="fa-solid fa-border-all"></i></span>
@@ -419,6 +435,7 @@
         Business
     </button>
 </nav>
+<!-- ================= SUBJECT GRID (browse by category) ================= -->
 <div class="subject-grid-wrapper" id="subjectGridWrapper">
     <div style="max-width:760px; margin:0 auto; padding:0 20px 28px;">
         <div class="subject-grid-label" id="gridLabel">All Subjects</div>
@@ -426,6 +443,7 @@
     </div>
 </div>
 
+<!-- ================= SEARCH SECTION (search box + result card) ================= -->
 <div class="main">
     <h2>Find Your Subject</h2>
     <p class="hint">Enter the subject code to search (eg. CMT1114), or browse by category above</p>
@@ -440,11 +458,17 @@
         <div class="subject-name" id="resultName"></div> 
         <div class="description" id="resultDesc"></div> 
     </div>
+
+    <div class="subject-grid-label" id="multiResultsLabel" style="display:none; margin-top:6px;"></div>
+    <div class="subject-grid" id="multiResults" style="margin-bottom:20px;"></div>
+
+
     <div class="not-found" id="notFound">
         <i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>
         Subject not found. Please check the code and try again.
     </div>
-<div class="upload-section" id="uploadSection">
+<!-- ================= UPLOAD ANSWER FORM ================= -->
+    <div class="upload-section" id="uploadSection">
     <div class="upload-card">
         <h3> Upload Answer — <span id="uploadSubjectLabel"></span></h3>
         <div class="upload-fields">
@@ -476,7 +500,8 @@
 </div>
 </div>
     </div>
-<div class="papers-section" id="papersSection">
+<!-- ================= PAST PAPERS LIST ================= -->
+    <div class="papers-section" id="papersSection">
   <div class="papers-header">
     <div class="papers-title">Available Past Year Papers</div>
     <select class="papers-filter" id="yearFilter" onchange="renderPapers()">
@@ -521,6 +546,7 @@
         document.getElementById('adminBtn').style.display = 'inline-block';
     }
  
+    // ================= LOAD SUBJECTS DATA =================
     let subjects = {};
  
     fetch('/subjects')
@@ -537,6 +563,7 @@
             };
         });
     });
+    // ================= CATEGORY METADATA (labels, colors, icons) =================
     const catMeta = {
         all:   { label: "All Subjects", badgeClass: "badge-other", badgeText: "General",     icon: "fa-border-all" },
         math:  { label: "Mathematics",  badgeClass: "badge-math",  badgeText: "Mathematics", icon: "fa-square-root-variable" },
@@ -547,6 +574,7 @@
         biz:   { label: "Business",     badgeClass: "badge-biz",   badgeText: "Business",    icon: "fa-briefcase" }
     };
 
+    // ================= CATEGORY BROWSE GRID (click a category to filter) =================
     let currentCat = null;
 
     document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -592,41 +620,119 @@
         document.getElementById('subjectGridWrapper').classList.remove('open');
     }
 
-    function search() {
-        const input = document.getElementById('searchInput').value.trim().toUpperCase();
-        const resultCard = document.getElementById('resultCard');
-        const notFound   = document.getElementById('notFound');
-        const section    = document.getElementById('uploadSection');
+    // ================= SEARCH RESULT RENDERING =================
+    function showSingleResult(code) {
+    const s    = subjects[code];
+    const meta = catMeta[s.cat] || catMeta['all'];
+    document.getElementById('resultCode').textContent = code;
+    document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
+    document.getElementById('resultDesc').textContent = s.desc;
+    const badge = document.getElementById('resultBadge');
+    badge.className = `badge ${meta.badgeClass}`;
+    badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
+    document.getElementById('resultCard').classList.add('show');
+    loadPapers(code);
+    document.getElementById('uploadSubjectLabel').textContent = code;
+    document.getElementById('uploadSection').classList.add('show');
+}
+
+function showMultiResults(matches) {
+    const label = document.getElementById('multiResultsLabel');
+    const grid  = document.getElementById('multiResults');
+    label.textContent = `${matches.length} subjects found`;
+    label.style.display = 'block';
+    grid.innerHTML = '';
+    matches.forEach(([code, s]) => {
+        const chip = document.createElement('div');
+        chip.className = 'subj-chip';
+        chip.dataset.cat = s.cat;
+        chip.innerHTML = `
+            <span class="chip-dot"></span>
+            <span class="chip-info">
+                <span class="chip-code">${code}</span>
+                <span class="chip-name">${s.name}</span>
+            </span>
+        `;
+        chip.addEventListener('click', () => {
+            document.getElementById('searchInput').value = code;
+            search();
+        });
+        grid.appendChild(chip);
+    });
+}
+
+function clearResults() {
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('notFound').classList.remove('show');
+    document.getElementById('multiResultsLabel').style.display = 'none';
+    document.getElementById('multiResults').innerHTML = '';
+}
+
+// ================= SEARCH (main entry point) =================
+function search() {
+    const rawInput = document.getElementById('searchInput').value;
+    const section   = document.getElementById('uploadSection');
+
+    clearResults();
+
+    if (!rawInput.trim()) return;
+
+    // 1) EXACT MATHCHING BY CODE OR NAME
+    const exactCode = findSubjectCode(rawInput);
+    if (exactCode) {
+        showSingleResult(exactCode);
+        return;
+    }
+
+    // 2) PARTIALLY MATCHING BY CODE OR NAME
+    const matches = findPartialMatches(rawInput);
+    if (matches.length === 1) {
+        showSingleResult(matches[0][0]);
+    } else if (matches.length > 1) {
+        section.classList.remove('show');
+        showMultiResults(matches);
+    } else {
+        document.getElementById('notFound').classList.add('show');
+        section.classList.remove('show');
+    }
+}
+
+    // ================= SEARCH HELPERS (exact / partial matching) =================    
+        // Look up a subject code from either a subject code or a subject name,
+    // matching subject names case-insensitively (e.g. "math I" / "MATH I").
+    function findSubjectCode(rawInput) {
+        const input = rawInput.trim();
+        if (!input) return null;
  
-        resultCard.classList.remove('show');
-        notFound.classList.remove('show');
+        // 1) exact subject code match (existing behavior)
+        const upper = input.toUpperCase();
+        if (subjects[upper]) return upper;
  
-        if (!input) return;
+        // 2) case-insensitive exact subject name match
+        const lower = input.toLowerCase();
+        const match = Object.entries(subjects).find(
+            ([code, s]) => (s.name || "").trim().toLowerCase() === lower
+        );
+        return match ? match[0] : null;
+    }
  
-        if (subjects[input]) {
-            const s    = subjects[input];
-            const meta = catMeta[s.cat] || catMeta['all'];
-            document.getElementById('resultCode').textContent = input;
-            document.getElementById('resultName').innerHTML   = `<i class="fa-solid ${s.icon}" style="margin-right:7px;opacity:0.7;"></i>${s.name}`;
-            document.getElementById('resultDesc').textContent = s.desc;
-            const badge = document.getElementById('resultBadge');
-            badge.className = `badge ${meta.badgeClass}`;
-            badge.innerHTML = `<i class="fa-solid ${meta.icon}"></i> ${meta.badgeText}`;
-            resultCard.classList.add('show');
-            loadPapers(input);
-            document.getElementById('uploadSubjectLabel').textContent = input;
-            section.classList.add('show');
-        
-        } else {
-            notFound.classList.add('show');
-            section.classList.remove('show');
-        }
+    // Find every subject whose code or name *contains* the typed text
+    // (case-insensitive), e.g. typing "math" matches "Mathematics I".
+    function findPartialMatches(rawInput) {
+        const lower = rawInput.trim().toLowerCase();
+        if (!lower) return [];
+        return Object.entries(subjects).filter(
+            ([code, s]) =>
+                code.toLowerCase().includes(lower) ||
+                (s.name || "").toLowerCase().includes(lower)
+        );
     }
 
     document.getElementById('searchInput').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') search();
     });
 
+    // ================= PAST PAPERS (load & render by subject/year) =================
     function loadPapers(code) {
   const subject = Object.values(subjects).find((s,i) => Object.keys(subjects)[i] === code);
   fetch('/subjects')
@@ -667,7 +773,8 @@ function renderPapers() {
   <div class="solutions-box" id="sol-${p.paper_id}" style="display:none;"></div>`;
   }).join('');
 }
-    function submitUpload() {
+// ================= UPLOAD ANSWER =================    
+function submitUpload() {
         const type = document.getElementById('answerType').value;
         const file = document.getElementById('fileInput').files[0];
         const paperId = document.getElementById('answerYear').value;
@@ -701,6 +808,7 @@ function renderPapers() {
         })
         .catch(() => alert('Upload failed. Please try again.'));
     }
+    // ================= SOLUTIONS & COMMENTS (view, post, vote, flag, delete) =================
     function toggleSolutions(paperId) {
   const box = document.getElementById('sol-' + paperId);
   if (box.style.display === 'block') { box.style.display = 'none'; return; }
@@ -836,6 +944,7 @@ function deleteComment(commentId, paperId) {
   });
 }
  
+// ================= ADMIN VERIFY MODAL / LOGOUT =================
 function toggleAdminVerify() {
     const box = document.getElementById("adminVerifyBox");
     box.style.display = box.style.display === "block" ? "none" : "block";
