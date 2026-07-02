@@ -26,5 +26,12 @@
         "user_email": "tdt@kska",
         "password_hash": "scrypt:32768:8:1$JxSQ0UNafOrJ001p$17d1089960d974fd93bc363d0bca41dfa366de2a4d62a91235420dc8ae52658de1e7e816f08d32406a87ee8bba1e9edc16535265b9617bbef69a3fbc8105922a",
         "role": "student"
+    },
+    {
+        "user_id": "d116570f-a282-43c5-9a53-ea6e456d8530",
+        "username": "Hong1",
+        "user_email": "hong.quan.hao@student.mmu.edu.my",
+        "password_hash": "scrypt:32768:8:1$AE91cPyV6kwBiGiM$d6771f193d63b04b01949758a83bf7072a60df85cb4d416f9db678d8fd196f130dff344a32555e4aa770dec56a564b0347fac08c8804dc8192ba98d4e9d11f25",
+        "role": "student"
     }
 ]
